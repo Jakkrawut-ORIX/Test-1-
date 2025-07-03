@@ -224,18 +224,22 @@
       .export-button-container {
         display: none; /* ซ่อนปุ่มเมื่อพิมพ์ */
       }
+      /* ใช้ Universal Selector และ !important เพื่อให้แน่ใจว่ามีการ Override สไตล์ทั้งหมด */
       .contact-info-section input[type="text"] {
-          border: none !important; /* Force no border */
-          outline: none !important; /* Remove outline on focus */
-          padding: 0;
-          width: auto; /* ให้ความกว้างปรับตามเนื้อหา */
-          display: inline-block; /* ให้อยู่ในบรรทัดเดียวกับ label */
-          background-color: transparent !important; /* Ensure no background */
-          box-shadow: none !important; /* No box shadow */
+          border: none !important; 
+          outline: none !important; 
+          background: none !important; 
+          box-shadow: none !important; 
+          padding: 0 !important; /* Reset padding */
+          margin: 0 !important; /* Reset margin */
+          vertical-align: baseline !important; /* Adjust vertical alignment if needed */
+          color: inherit !important; /* Ensure text color is inherited */
+          -webkit-appearance: none; /* For Safari/Chrome */
+          -moz-appearance: none; /* For Firefox */
+          appearance: none; /* Standard */
       }
-      /* ซ่อน placeholder text ในโหมดพิมพ์ */
       .contact-info-section input[type="text"]::placeholder {
-          color: transparent;
+          color: transparent !important; /* Ensure placeholder text is hidden */
       }
       .contact-info-section label {
           display: inline-block;
@@ -257,7 +261,7 @@
       .contact-info-item {
           flex-grow: 1; /* ให้แต่ละ item ขยายเต็มพื้นที่ */
           display: flex; /* ให้ label และ input อยู่ในบรรทัดเดียวกัน */
-          align-items: center;
+          align-items: baseline; /* จัดแนวตั้งให้ตรงกับ label */
       }
       body {
         margin: 0;
