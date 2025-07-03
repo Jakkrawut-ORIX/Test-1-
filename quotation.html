@@ -38,7 +38,6 @@
       justify-content: flex-end; /* ข้อมูลบริษัทชิดขวาสุด */
       align-items: center;
       flex-wrap: wrap;
-      /* เส้นบนสุดของใบเสนอราคาถูกนำออก */
       padding-bottom: 10px;
       margin-bottom: 15px;
     }
@@ -229,6 +228,10 @@
           padding: 0;
           width: auto; /* ให้ความกว้างปรับตามเนื้อหา */
           display: inline-block; /* ให้อยู่ในบรรทัดเดียวกับ label */
+      }
+      /* ซ่อน placeholder text ในโหมดพิมพ์ */
+      .contact-info-section input[type="text"]::placeholder {
+          color: transparent;
       }
       .contact-info-section label {
           display: inline-block;
