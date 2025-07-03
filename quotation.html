@@ -63,8 +63,8 @@
       color: var(--orix-logo-blue);
       font-size: 1.4em;
       margin-bottom: 10px;
-      border-bottom: 2px solid var(--orix-logo-blue); /* เพิ่มเส้นใต้ H1 */
-      padding-bottom: 10px; /* เพิ่มระยะห่างระหว่าง H1 กับเส้นใต้ */
+      /* border-bottom: 2px solid var(--orix-logo-blue); /* Removed line above H1 */ */
+      padding-bottom: 10px; /* Added padding under h1 to separate line from title */
     }
     .section-title {
       font-weight: 600;
@@ -121,17 +121,28 @@
         margin-top: 20px;
         padding-top: 10px;
         border-top: 1px dashed var(--orix-border-color);
+        display: flex; /* ใช้ flexbox เพื่อจัดวางให้อยู่ในบรรทัดเดียวกัน */
+        flex-wrap: wrap; /* ให้ขึ้นบรรทัดใหม่เมื่อหน้าจอเล็ก */
+        gap: 15px; /* ระยะห่างระหว่างช่อง */
+        font-size: 0.9em; /* ลดขนาดฟอนต์ของส่วนข้อมูลติดต่อ */
     }
-    .contact-info-section div {
-        margin-bottom: 5px;
+    .contact-info-section .section-title {
+        width: 100%; /* ทำให้หัวข้ออยู่เต็มบรรทัด */
+        font-size: 0.9em; /* ลดขนาดฟอนต์หัวข้อข้อมูลติดต่อ */
+        margin-top: 0;
+    }
+    .contact-info-item {
+        display: flex;
+        align-items: center;
+        flex-grow: 1; /* ให้แต่ละ item ขยายเต็มพื้นที่ */
     }
     .contact-info-section label {
-        display: inline-block;
-        width: 120px; /* ปรับเพื่อการจัดแนว */
+        white-space: nowrap; /* ไม่ให้ข้อความ label ขึ้นบรรทัดใหม่ */
+        margin-right: 5px; /* ระยะห่างระหว่าง label กับ input */
         font-weight: 600;
     }
     .contact-info-section input[type="text"] {
-        width: calc(100% - 130px); /* ปรับตามความกว้างของ label */
+        flex-grow: 1; /* ทำให้ input ขยายเต็มพื้นที่ที่เหลือ */
         padding: 5px;
         border: 1px solid var(--orix-border-color);
         border-radius: 3px;
@@ -170,7 +181,7 @@
       h1 {
         font-size: 1.2em; /* หัวข้อหลักเล็กลง */
         margin-bottom: 5px;
-        padding-bottom: 5px; /* ปรับ padding สำหรับมือถือ */
+        padding-bottom: 5px; /* Adjust padding for mobile */
       }
       .section-title {
         margin: 10px 0 3px; /* ลดระยะขอบหัวข้อส่วน */
@@ -192,11 +203,18 @@
         padding: 8px 15px; /* ลดขนาดปุ่ม */
         font-size: 0.9em; /* ลดขนาดฟอนต์ปุ่ม */
       }
+      .contact-info-section {
+          flex-direction: column; /* บนมือถือให้กลับมาเป็นคอลัมน์เพื่อให้จัดการง่าย */
+          gap: 5px; /* ลด gap บนมือถือ */
+      }
+      .contact-info-item {
+          width: 100%; /* ให้เต็มความกว้าง */
+      }
       .contact-info-section label {
-        width: 80px; /* ปรับสำหรับมือถือ */
+        width: 80px; /* Adjust for mobile */
       }
       .contact-info-section input[type="text"] {
-        width: calc(100% - 90px); /* ปรับสำหรับมือถือ */
+        width: calc(100% - 90px); /* Adjust for mobile */
       }
     }
 
@@ -213,8 +231,24 @@
       }
       .contact-info-section label {
           display: inline-block;
-          width: 80px; /* ปรับเพื่อการจัดแนว */
+          white-space: nowrap;
+          margin-right: 5px;
           font-weight: 600;
+      }
+      .contact-info-section {
+          display: flex; /* คง flexbox สำหรับการพิมพ์ */
+          flex-direction: row; /* จัดเรียงเป็นแถว */
+          gap: 10mm; /* ระยะห่างระหว่างช่องสำหรับการพิมพ์ */
+          font-size: 0.9em; /* ลดขนาดฟอนต์ของส่วนข้อมูลติดต่อ */
+      }
+      .contact-info-section .section-title {
+          width: 100%; /* หัวข้ออยู่เต็มบรรทัด */
+          font-size: 0.9em; /* ลดขนาดฟอนต์หัวข้อข้อมูลติดต่อ */
+      }
+      .contact-info-item {
+          flex-grow: 1; /* ให้แต่ละ item ขยายเต็มพื้นที่ */
+          display: flex; /* ให้ label และ input อยู่ในบรรทัดเดียวกัน */
+          align-items: center;
       }
       body {
         margin: 0;
@@ -312,11 +346,11 @@
 
     <div class="contact-info-section">
       <div class="section-title">ข้อมูลติดต่อ</div>
-      <div>
+      <div class="contact-info-item">
         <label for="contactName">ชื่อ:</label>
         <input type="text" id="contactName" name="contactName" placeholder="กรอกชื่อผู้ติดต่อ" />
       </div>
-      <div>
+      <div class="contact-info-item">
         <label for="contactPhone">เบอร์โทรศัพท์:</label>
         <input type="text" id="contactPhone" name="contactPhone" placeholder="กรอกเบอร์โทรศัพท์" />
       </div>
@@ -423,7 +457,7 @@
 
         pdf.addImage(img, 'JPEG', xPos, yPos, imgPdfWidth, imgPdfHeight); // ใช้ 'JPEG'
         
-        pdf.save("ใบเสนอราคา_ORIX.pdf"); // ตั้งชื่อไฟล์ที่สื่อความหมาย
+        pdf.save("ใบเสนอราคา.pdf"); // ตั้งชื่อไฟล์ให้สื่อความหมายมากขึ้น
       } catch (err) {
         alert("การ Export PDF ล้มเหลว: " + err.message);
       } finally {
