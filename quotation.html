@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <title>ใบเสนอราคา - ORIX Lease</title>
+  <title>ใบเสนอราคาเบื้องต้น</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -35,32 +35,28 @@
     }
     .header {
       display: flex;
-      justify-content: space-between; /* โลโก้ซ้ายสุด, ข้อมูลบริษัทขวาสุด */
-      align-items: center; /* จัดกึ่งกลางในแนวตั้งระหว่างโลโก้กับข้อมูลบริษัท */
+      justify-content: flex-end; /* ข้อมูลบริษัทชิดขวาสุด */
+      align-items: center;
       flex-wrap: wrap;
       border-bottom: 2px solid var(--orix-logo-blue);
       padding-bottom: 10px;
       margin-bottom: 15px;
     }
-    .logo img {
-      max-width: 75px; /* ลดขนาดโลโก้ลงอีก */
-      height: auto;
-    }
     .company-info {
       text-align: right;
       color: var(--orix-mid-grey);
-      line-height: 1.1; /* ทำให้ระยะห่างระหว่างบรรทัดของที่อยู่กระชับขึ้น */
-      margin-top: 0; /* ลบ margin-top เพราะ align-items: center จะจัดการให้ */
+      line-height: 1.1;
+      margin-top: 0;
     }
     .company-info p {
-        margin: 0; /* ลบ margin เริ่มต้นของ p เพื่อให้ชิดกัน */
-        white-space: nowrap; /* ป้องกันไม่ให้ข้อความขึ้นบรรทัดใหม่โดยไม่จำเป็น */
-        font-size: 7pt; /* ลดขนาดที่อยู่และเบอร์โทรศัพท์ลง 2pt จาก 9pt เดิม */
+        margin: 0;
+        white-space: nowrap;
+        font-size: 7pt;
     }
     .company-info p .company-name {
-        font-size: 9pt; /* ให้ชื่อบริษัทใหญ่เท่าเดิม */
-        font-weight: 600; /* เพิ่มความหนาให้ชื่อบริษัทโดดเด่นขึ้น */
-        white-space: normal; /* อนุญาตให้ชื่อบริษัทขึ้นบรรทัดใหม่ได้ หากยาวเกินไป */
+        font-size: 9pt;
+        font-weight: 600;
+        white-space: normal;
     }
     h1 {
       text-align: center;
@@ -118,6 +114,29 @@
       border-radius: 5px;
       cursor: pointer;
     }
+    /* Styles for the contact info section */
+    .contact-info-section {
+        margin-top: 20px;
+        padding-top: 10px;
+        border-top: 1px dashed var(--orix-border-color);
+    }
+    .contact-info-section div {
+        margin-bottom: 5px;
+    }
+    .contact-info-section label {
+        display: inline-block;
+        width: 120px; /* Adjust as needed for alignment */
+        font-weight: 600;
+    }
+    .contact-info-section input[type="text"] {
+        width: calc(100% - 130px); /* Adjust based on label width */
+        padding: 5px;
+        border: 1px solid var(--orix-border-color);
+        border-radius: 3px;
+        font-family: 'Kanit', sans-serif;
+        font-size: 0.95em;
+    }
+
 
     /* --- รูปแบบเฉพาะสำหรับมือถือ --- */
     @media only screen and (max-width: 600px) {
@@ -131,7 +150,7 @@
       }
       .header {
         flex-direction: row; /* เปลี่ยนเป็น row เพื่อให้โลโก้และข้อมูลบริษัทอยู่ข้างกัน */
-        justify-content: space-between; /* รักษาการจัดระยะห่างระหว่างองค์ประกอบ */
+        justify-content: flex-end; /* รักษาการจัดระยะห่างระหว่างองค์ประกอบ */
         align-items: center; /* จัดกึ่งกลางแนวตั้ง */
         padding-bottom: 5px;
         margin-bottom: 10px;
@@ -170,12 +189,29 @@
         padding: 8px 15px; /* ลดขนาดปุ่ม */
         font-size: 0.9em; /* ลดขนาดฟอนต์ปุ่ม */
       }
+      .contact-info-section label {
+        width: 80px; /* Adjust for mobile */
+      }
+      .contact-info-section input[type="text"] {
+        width: calc(100% - 90px); /* Adjust for mobile */
+      }
     }
 
     /* --- รูปแบบเฉพาะสำหรับการพิมพ์ (A4 PDF) --- */
     @media print {
       .export-button-container {
         display: none; /* ซ่อนปุ่มเมื่อพิมพ์ */
+      }
+      .contact-info-section input[type="text"] {
+          border: none; /* Hide borders for inputs when printing */
+          padding: 0;
+          width: auto; /* Allow content to dictate width */
+          display: inline-block; /* Keep it in line with the label */
+      }
+      .contact-info-section label {
+          display: inline-block;
+          width: 80px; /* Adjust as needed for alignment */
+          font-weight: 600;
       }
       body {
         margin: 0;
@@ -196,16 +232,19 @@
         padding-bottom: 5mm;
         align-items: center; /* จัดกึ่งกลางแนวตั้ง */
       }
-      .logo img {
-        max-width: 65px; /* ปรับขนาดโลโก้ให้เหมาะสมกับการพิมพ์ */
+      .logo {
+          display: none; /* ซ่อนโลโก้ในการพิมพ์ */
+      }
+      .company-info {
+          text-align: right; /* จัดข้อมูลบริษัทชิดขวา */
       }
       .company-info p {
         margin: 0; /* ลบ margin เริ่มต้นของ p เพื่อให้ชิดกันในการพิมพ์ */
         white-space: nowrap; /* ป้องกันไม่ให้ข้อความขึ้นบรรทัดใหม่โดยไม่จำเป็นในการพิมพ์ */
-        font-size: 5pt; /* ลดขนาดลง 2pt จาก 7pt เดิมสำหรับการพิมพ์ */
+        font-size: 7pt; /* ลดขนาดลง 2pt จาก 7pt เดิมสำหรับการพิมพ์ */
       }
       .company-info p .company-name {
-        font-size: 7pt; /* ให้ชื่อบริษัทใหญ่เท่าเดิมสำหรับการพิมพ์ */
+        font-size: 9pt; /* ให้ชื่อบริษัทใหญ่เท่าเดิมสำหรับการพิมพ์ */
       }
       h1 {
         font-size: 1.3em; /* ปรับขนาดหัวข้อหลักให้เหมาะสมกับการพิมพ์ */
@@ -236,16 +275,8 @@
 <body>
   <div class="quotation-container">
     <div class="header">
-      <div class="logo">
-        <img src="orix_logo.png" alt="ORIX Logo" />
-      </div>
       <div class="company-info">
-        <p><span class="company-name">บริษัท ไทยโอริกซ์ลีสซิ่ง จำกัด</span></p>
-        <p>555 รสา วัน (อาคาร บี) ยูนิต 1801 ชั้น 18 และ ชั้น 19</p>
-        <p>ถนนพหลโยธิน แขวงจตุจักร เขตจตุจักร</p>
-        <p>กรุงเทพฯ 10900</p>
-        <p>โทรศัพท์: 66(0) 2792-4500</p>
-      </div>
+        </div>
     </div>
 
     <h1>ใบเสนอราคาเบื้องต้น</h1>
@@ -274,6 +305,18 @@
       <tr><td class="label">เงินดาวน์:</td><td class="value highlight-value" id="q_downAmount_summary"></td></tr>
       <tr><td class="label">ค่างวดต่อเดือน (รวม VAT):</td><td class="value highlight-value" id="q_leaseInVat"></td></tr>
     </table>
+
+    <div class="contact-info-section">
+      <div class="section-title">ข้อมูลติดต่อ</div>
+      <div>
+        <label for="contactName">ชื่อ:</label>
+        <input type="text" id="contactName" name="contactName" placeholder="กรอกชื่อผู้ติดต่อ" />
+      </div>
+      <div>
+        <label for="contactPhone">เบอร์โทรศัพท์:</label>
+        <input type="text" id="contactPhone" name="contactPhone" placeholder="กรอกเบอร์โทรศัพท์" />
+      </div>
+    </div>
 
     <div class="footer">
       <p>ใบเสนอราคานี้เป็นข้อมูลเบื้องต้นและอาจมีการเปลี่ยนแปลงตามเงื่อนไขของบริษัท</p>
@@ -337,30 +380,36 @@
     async function exportQuotationAsPdf() {
       const box = document.querySelector('.quotation-container');
       const btn = document.querySelector('.export-button-container');
-      btn.style.display = 'none'; // ซ่อนปุ่มก่อนจับภาพ
+
+      // Temporarily hide the button before capturing the screenshot
+      btn.style.display = 'none'; 
+
+      // Get contact info to embed in the PDF
+      const contactName = document.getElementById('contactName').value;
+      const contactPhone = document.getElementById('contactPhone').value;
 
       try {
         const canvas = await html2canvas(box, { 
-          scale: 2, // เพิ่มสเกลเพื่อเพิ่มความคมชัด
+          scale: 2, // Increase scale for better clarity
           useCORS: true,
-          windowWidth: document.querySelector('.quotation-container').scrollWidth, // จับภาพความกว้างทั้งหมด
-          windowHeight: document.querySelector('.quotation-container').scrollHeight // จับภาพความสูงทั้งหมด
+          windowWidth: document.querySelector('.quotation-container').scrollWidth, // Capture full width
+          windowHeight: document.querySelector('.quotation-container').scrollHeight // Capture full height
         });
-        const img = canvas.toDataURL('image/jpeg', 0.7); // ใช้ JPEG และกำหนดคุณภาพ 0.7 เพื่อลดขนาดไฟล์
+        const img = canvas.toDataURL('image/jpeg', 0.7); // Use JPEG with 0.7 quality to reduce file size
         
-        // ขนาด A4 ในหน่วยมิลลิเมตร (210 มม. x 297 มม.)
+        // A4 dimensions in mm (210 mm x 297 mm)
         const pdfW = 210; 
         const pdfH = 297; 
 
-        // คำนวณขนาดรูปภาพให้พอดีกับ PDF โดยรักษาสัดส่วน
+        // Calculate image size to fit PDF while maintaining aspect ratio
         const imgCanvasWidth = canvas.width;
         const imgCanvasHeight = canvas.height;
 
-        let imgPdfWidth = pdfW - 20; // 10 มม. ระยะขอบแต่ละด้าน (รวม 20 มม. สำหรับซ้ายขวา)
+        let imgPdfWidth = pdfW - 20; // 10mm margin on each side (total 20mm for left/right)
         let imgPdfHeight = (imgCanvasHeight * imgPdfWidth) / imgCanvasWidth;
 
-        // หากรูปภาพสูงเกินไป ให้ย่อขนาดลงเพื่อให้พอดีกับความสูงของ PDF พร้อมระยะขอบ
-        if (imgPdfHeight > pdfH - 20) { // 10 มม. ระยะขอบด้านบน/ล่าง (รวม 20 มม. สำหรับบนล่าง)
+        // If image is too tall, scale it down to fit PDF height with margins
+        if (imgPdfHeight > pdfH - 20) { // 10mm top/bottom margin (total 20mm for top/bottom)
             imgPdfHeight = pdfH - 20;
             imgPdfWidth = (imgCanvasWidth * imgPdfHeight) / imgCanvasHeight;
         }
@@ -368,16 +417,33 @@
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
 
-        // กำหนดตำแหน่ง X และ Y เพื่อให้รูปภาพอยู่กึ่งกลางหน้า
+        // Calculate X and Y positions to center the image on the page
         const xPos = (pdfW - imgPdfWidth) / 2;
         const yPos = (pdfH - imgPdfHeight) / 2;
 
-        pdf.addImage(img, 'JPEG', xPos, yPos, imgPdfWidth, imgPdfHeight); // ใช้ 'JPEG'
-        pdf.save("ใบเสนอราคา_ORIX.pdf"); // ตั้งชื่อไฟล์ที่สื่อความหมาย
+        pdf.addImage(img, 'JPEG', xPos, yPos, imgPdfWidth, imgPdfHeight); // Use 'JPEG'
+
+        // Add contact information to the PDF if available
+        pdf.setFont('Kanit', 'normal'); // You might need to add Kanit font to jsPDF for this to work correctly
+        pdf.setFontSize(10); // Set font size for contact info
+        let textYPos = imgPdfHeight + yPos + 5; // Position below the captured image
+
+        if (contactName || contactPhone) {
+            // Check if there's enough space, otherwise add a new page
+            if (textYPos + 15 > pdfH) { 
+                pdf.addPage();
+                textYPos = 15; // Start from top of new page
+            }
+            pdf.text(xPos + 5, textYPos, `ชื่อผู้ติดต่อ: ${contactName || '-'}`); // Add some left padding
+            pdf.text(xPos + 5, textYPos + 7, `เบอร์โทรศัพท์: ${contactPhone || '-'}`);
+        }
+        
+        pdf.save("ใบเสนอราคา_ORIX.pdf"); // Save the file with a meaningful name
       } catch (err) {
         alert("การ Export PDF ล้มเหลว: " + err.message);
       } finally {
-        btn.style.display = 'block'; // แสดงปุ่มอีกครั้ง
+        // Show the button again after the process is complete
+        btn.style.display = 'block'; 
       }
     }
   </script>
