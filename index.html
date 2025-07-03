@@ -458,6 +458,27 @@ function showDownPercent() {
   document.getElementById("qsDownPercent").value = format4(result) + '%';
 }
 
+// *** ฟังก์ชันใหม่ที่เพิ่มเข้ามาเพื่ออัปเดต QS Information ***
+function updateQsInfo(carInfo, carPrice, discount, option, downAmount, termYears, trRate, trDep, qsExtraCost) {
+    document.getElementById('qsCarInfo').value = carInfo;
+    document.getElementById('qsCarPrice').value = format(carPrice);
+    document.getElementById('qsDiscount').value = format(discount);
+    document.getElementById('qsOption').value = format(option);
+    document.getElementById('qsDownAmount').value = format(downAmount);
+    // qsDownPercent ถูกอัปเดตใน showDownPercent() อยู่แล้ว
+    document.getElementById('qsTrRate').value = isNaN(trRate) ? 'ไม่สามารถคำนวณ' : format4(trRate);
+    document.getElementById('qsTermYears').value = termYears;
+
+    // ส่วนของ Deposit และ RV อาจจะต้องมี logic เพิ่มเติมถ้าคุณมีข้อมูลเหล่านี้
+    // แต่จากโค้ดปัจจุบันยังไม่มีการคำนวณค่าเหล่านี้โดยตรง
+    document.getElementById('qsDeposit').value = format(0); // หรือค่าเริ่มต้นที่คุณต้องการ
+    document.getElementById('qsRV').value = format(0) + '%'; // หรือค่าเริ่มต้นที่คุณต้องการ
+
+    document.getElementById('qsTrDep').value = isNaN(trDep) ? 'ไม่สามารถคำนวณ' : format4(trDep);
+    // qsExtraCost ถูกแสดงที่ qsExtra ในส่วนของค่าคอมมิชชั่นอยู่แล้ว แต่ถ้าต้องการให้แสดงแยกใน QS Information ด้วยก็สามารถใส่เพิ่มได้
+    // document.getElementById('qsExtra').value = format(qsExtraCost); // อาจซ้ำกับ input qsExtra ด้านบน
+}
+
 function calculate() {
   const getVal = id => uncomma(document.getElementById(id).value);
   const getIntVal = id => parseInt(uncomma(document.getElementById(id).value)) || 0;
@@ -505,7 +526,7 @@ function calculate() {
       document.getElementById('trRate').value = 'ไม่สามารถคำนวณ';
       document.getElementById('qsTrDep').value = 'ไม่สามารถคำนวณ';
       showDownPercent();
-      updateQsInfo(carInfo, car, discount, option, down, years, 0, 0, 0);
+      updateQsInfo(carInfo, car, discount, option, down, years, 0, 0, 0); // *** เรียกใช้ updateQsInfo ที่นี่ ***
       return;
   }
 
@@ -621,8 +642,9 @@ function calculate() {
   document.getElementById('trRate').value = isNaN(tr) ? 'ไม่สามารถคำนวณ' : format4(tr);
   document.getElementById('qsTrDep').value = isNaN(trDep) ? 'ไม่สามารถคำนวณ' : format4(trDep);
 
+  // *** เรียกใช้ updateQsInfo ที่นี่เพื่อให้ข้อมูล QS อัปเดตเสมอหลังการคำนวณหลัก ***
   updateQsInfo(carInfo, car, discount, option, down, years, tr, trDep, qsExtraCost);
-  showDownPercent();
+  showDownPercent(); // เรียก showDownPercent() เพื่ออัปเดตเปอร์เซ็นต์เงินดาวน์และ qsDownPercent
 }
 
 // ฟังก์ชันสำหรับคำนวณเงินดาวน์สำหรับค่างวดเป้าหมาย (ยังคงถือว่าดอกเบี้ยที่ป้อนเป็น Flat Rate)
