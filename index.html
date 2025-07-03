@@ -480,13 +480,16 @@ function calculate() {
   document.getElementById('downAmount').value = format(down);
 
   const finance = total - down;
-  const originalInterestRateInput = getVal('interestRate'); // อัตราดอกเบี้ยที่ผู้ใช้กรอก
+  const originalInterestRateInput = getVal('interestRate'); // อัตราดอกเบี้ยที่ผู้ใช้กรอก (จะเป็น Flat หรือ Effective)
   const rateType = document.getElementById('rateType').value;
-  let actualFlatRate = 0; // นี่คืออัตราดอกเบี้ยแบบ Flat Rate ที่จะใช้ในการคำนวณทั้งหมด
+  let actualFlatRate = 0; // Flat Rate ที่จะใช้ในการคำนวณดอกเบี้ย (ไม่ว่าจะเริ่มต้นจาก Flat หรือ Effective)
+  let leaseInVat = 0; // ค่างวด (In VAT)
+  let intTotal = 0; // ดอกเบี้ยรวม
 
   const years = getIntVal('termYears');
   const months = years * 12;
 
+  // ตรวจสอบกรณีที่ไม่มีระยะเวลาการผ่อน
   if (months === 0) {
       document.getElementById('financeAmt').value = format(finance);
       document.getElementById('calculatedFlatRate').value = format(0);
@@ -500,78 +503,113 @@ function calculate() {
       document.getElementById('trRate').value = 'ไม่สามารถคำนวณ';
       document.getElementById('qsTrDep').value = 'ไม่สามารถคำนวณ';
       showDownPercent();
-      updateQsInfo(carInfo, car, discount, option, down, years, 0, 0, 0); // ส่ง qsExtraCost เป็น 0
+      updateQsInfo(carInfo, car, discount, option, down, years, 0, 0, 0);
       return;
   }
 
-  // กำหนดค่า actualFlatRate โดยอิงตาม rateType
-  if (rateType === 'flat') {
-      actualFlatRate = originalInterestRateInput;
-  } else { // effective rate
-      // ถ้าผู้ใช้กรอก effective rate เราต้องหา flat rate ที่ให้ผลลัพธ์เป็น effective rate นั้น
-      // นี่คือกระบวนการแบบวนซ้ำ (iterative process) โดยใช้การค้นหาแบบ Bisection search
-      // เพื่อหาค่า 'x' (flat rate) ที่ทำให้:
-      // effective_rate_ที่ต้องการ = IRR(เดือนทั้งหมด, ceil( (ยอดจัด + ยอดจัด * (x/100) * ปี) / เดือนทั้งหมด ), -ยอดจัด)
-
-      // ฟังก์ชันช่วยในการคำนวณ effective rate จาก flat rate ที่กำหนด
-      const getEffectiveRateForFlat = (flatRate) => {
-          const simulatedIntTotal = finance * (flatRate / 100) * years;
-          const simulatedFinanceTotalWithInterest = finance + simulatedIntTotal;
-          const simulatedLeaseInVat = Math.ceil(simulatedFinanceTotalWithInterest / months);
-          // คำนวณ IRR โดยใช้ pv เป็น -finance เพราะเป็นกระแสเงินสดออกเริ่มต้น
-          return calculateIRR(months, simulatedLeaseInVat, -finance, 0, 0) * 12 * 100;
-      };
-
-      let low = 0;
-      let high = 100; // ช่วงการค้นหาสำหรับ flat rate (0% ถึง 100%)
-      const targetEffectiveRate = originalInterestRateInput;
-      const tolerance = 0.0001; // ค่าความคลาดเคลื่อนที่ยอมรับได้
-
-      for (let i = 0; i < 200; i++) { // วนซ้ำสูงสุด 200 ครั้ง
-          let mid = (low + high) / 2;
-          let calculatedEffective = getEffectiveRateForFlat(mid);
-
-          if (Math.abs(calculatedEffective - targetEffectiveRate) < tolerance) {
-              actualFlatRate = mid;
-              break;
-          }
-
-          if (calculatedEffective < targetEffectiveRate) {
-              low = mid;
-          } else {
-              high = mid;
-          }
-          actualFlatRate = mid; // ค่าที่ใกล้เคียงที่สุดหากยังไม่บรรจบกันอย่างสมบูรณ์
-      }
-      if (isNaN(actualFlatRate) || !isFinite(actualFlatRate)) {
-        actualFlatRate = 0; // ตั้งค่าเริ่มต้นหากการคำนวณล้มเหลว
-      }
-  }
-
-  // การคำนวณทั้งหมดหลังจากนี้จะใช้ 'actualFlatRate'
-  const intPA = finance * (actualFlatRate / 100);
-  const intTotal = intPA * years;
-  const financeTotalWithInterest = finance + intTotal;
-  document.getElementById('financeTotalWithInterest').value = format(financeTotalWithInterest);
-
+  // คำนวณค่าคอมมิชชั่นและ QS Extra Cost ก่อน เพราะต้องใช้ในการหา PMT/IRR
   const comBase = document.getElementById('comBase').value;
   const comPercent = getIntVal('comPercent');
   const extra = getVal('extra');
-  const comBaseVal = comBase === "finance" ? finance : intTotal;
-  const commission = Math.ceil(comBaseVal * (comPercent / 100));
-  const qsExtraCost = commission + extra; // เปลี่ยนชื่อเพื่อให้ตรงกับตาราง QS
+  
+  // กำหนดค่า actualFlatRate หรือ leaseInVat โดยอิงตาม rateType
+  if (rateType === 'flat') {
+      actualFlatRate = originalInterestRateInput;
+      intTotal = finance * (actualFlatRate / 100) * years;
+      const financeTotalWithInterest = finance + intTotal;
+      leaseInVat = Math.ceil(financeTotalWithInterest / months);
 
-  const leaseInVat = Math.ceil(financeTotalWithInterest / months);
+      let commission = 0;
+      if (comBase === "finance") {
+          commission = Math.ceil(finance * (comPercent / 100));
+      } else { // comBase === "interest"
+          commission = Math.ceil(intTotal * (comPercent / 100));
+      }
+      const qsExtraCost = commission + extra;
+
+      document.getElementById('calculatedCommission').value = format(commission);
+      document.getElementById('qsExtra').value = format(qsExtraCost);
+
+  } else { // effective rate (ผู้ใช้กรอก TR)
+      const targetTrRate = originalInterestRateInput; // นี่คือ TR ที่เราต้องการให้เป็น
+
+      let lowLease = 1; // ค่างวดต่ำสุดที่เป็นไปได้
+      let highLease = (finance * 2) / months; // ค่างวดสูงสุดที่เป็นไปได้ (ประมาณการ)
+      if (highLease < 1000) highLease = 100000; // ensure high enough for small finance amounts
+      
+      let currentLeaseCandidate = 0;
+      let calculatedTr = 0;
+      let bestLease = 0;
+      let minTrDiff = Infinity;
+      let bestCommission = 0;
+      let bestQsExtraCost = 0;
+      
+      for (let i = 0; i < 200; i++) { // วนซ้ำเพื่อหา leaseInVat ที่เหมาะสม
+          currentLeaseCandidate = Math.ceil((lowLease + highLease) / 2);
+          if (currentLeaseCandidate <= 0) currentLeaseCandidate = 1; // กันหารด้วยศูนย์
+
+          // คำนวณ intTotal และ commission ชั่วคราวจาก currentLeaseCandidate
+          const tempFinanceTotalWithInterest = currentLeaseCandidate * months;
+          const tempIntTotal = tempFinanceTotalWithInterest - finance;
+          let tempCommission = 0;
+          if (comBase === "finance") {
+              tempCommission = Math.ceil(finance * (comPercent / 100));
+          } else { // comBase === "interest"
+              tempCommission = Math.ceil(tempIntTotal * (comPercent / 100));
+          }
+          const tempQsExtraCost = tempCommission + extra;
+
+          // PV สำหรับ IRR ที่จะคำนวณ TR
+          const pvForTrCalculation = -(finance + (tempCommission * 1.07) + (extra * 1.07));
+          
+          calculatedTr = calculateIRR(months, currentLeaseCandidate, pvForTrCalculation, 0, 0) * 12 * 100;
+          
+          const diff = Math.abs(calculatedTr - targetTrRate);
+
+          if (diff < minTrDiff) {
+              minTrDiff = diff;
+              bestLease = currentLeaseCandidate;
+              bestCommission = tempCommission;
+              bestQsExtraCost = tempQsExtraCost;
+          }
+
+          if (Math.abs(highLease - lowLease) < 0.1 || diff < 0.0001) { // Convergence criteria
+              break;
+          }
+
+          if (calculatedTr > targetTrRate) {
+              lowLease = currentLeaseCandidate; // TR สูงไป -> ต้องเพิ่มค่างวด (หรือลด PV/เพิ่มดอกเบี้ยใน PMT)
+          } else {
+              highLease = currentLeaseCandidate; // TR ต่ำไป -> ต้องลดค่างวด (หรือเพิ่ม PV/ลดดอกเบี้ยใน PMT)
+          }
+      }
+      
+      leaseInVat = bestLease;
+      intTotal = (leaseInVat * months) - finance; // คำนวณ intTotal จากค่างวดที่หาได้
+      actualFlatRate = (intTotal / finance / years) * 100; // คำนวณ Flat Rate ย้อนกลับ
+
+      document.getElementById('calculatedCommission').value = format(bestCommission);
+      document.getElementById('qsExtra').value = format(bestQsExtraCost);
+
+      if (isNaN(actualFlatRate) || !isFinite(actualFlatRate)) {
+        actualFlatRate = 0;
+      }
+  }
+
+  // คำนวณส่วนที่เหลือจากค่าที่ได้ (ใช้ค่า intTotal, leaseInVat, actualFlatRate ที่คำนวณได้จากด้านบน)
+  const intPA = finance * (actualFlatRate / 100);
+  const financeTotalWithInterestFinal = finance + intTotal;
   const leaseExVat = leaseInVat / 1.07;
 
-  // การคำนวณ TR (Effective %)
-  // อิงตามสูตรที่ผู้ใช้ให้มา: RATE((จำนวนปี*12),ค่างวด InVAT,(-ยอดจัด+-ค่าคอม*1.07+-extra*1.07),0,0)*12
-  const pvForIRR = -(finance + (commission * 1.07) + (extra * 1.07));
+  // การคำนวณ TR (Effective %) จากค่างวดที่ได้ (ควรจะตรงกับ targetTrRate หากเลือก effective)
+  const finalCommission = uncomma(document.getElementById('calculatedCommission').value); // ใช้ค่า commission ที่ถูกอัปเดตแล้ว
+  const finalQsExtraCost = uncomma(document.getElementById('qsExtra').value); // ใช้ค่า qsExtra ที่ถูกอัปเดตแล้ว
+
+  const pvForIRR = -(finance + (finalCommission * 1.07) + (extra * 1.07));
   const tr = calculateIRR(months, leaseInVat, pvForIRR, 0, 0) * 12 * 100;
 
   // การคำนวณ TR Dep (ปรับปรุงตามสูตรใหม่ล่าสุด)
-  // TR Dep = RATE((จำนวนปี*12),ค่างวดInVAT,((-total)+(-ค่าคอมที่คำนวณ*1.07)+(-extra*1.07)),เงินดาวน์,0)*12
-  const pvForTRDep = -(total + (commission * 1.07) + (extra * 1.07));
+  const pvForTRDep = -(total + (finalCommission * 1.07) + (extra * 1.07));
   const trDep = calculateIRR(months, leaseInVat, pvForTRDep, down, 0) * 12 * 100;
 
 
@@ -579,201 +617,17 @@ function calculate() {
   document.getElementById('calculatedFlatRate').value = format4(actualFlatRate); // แสดง Flat Rate ที่คำนวณได้
   document.getElementById('intPA').value = format(intPA);
   document.getElementById('intTotal').value = format(intTotal);
-  document.getElementById('calculatedCommission').value = format(commission);
-  document.getElementById('qsExtra').value = format(qsExtraCost); // ใช้ qsExtraCost ตรงนี้
+  document.getElementById('financeTotalWithInterest').value = format(financeTotalWithInterestFinal);
   document.getElementById('leaseInVat').value = format(leaseInVat);
   document.getElementById('leaseExVat').value = format(leaseExVat);
   document.getElementById('trRate').value = isNaN(tr) ? 'ไม่สามารถคำนวณ' : format4(tr);
   document.getElementById('qsTrDep').value = isNaN(trDep) ? 'ไม่สามารถคำนวณ' : format4(trDep);
 
-  updateQsInfo(carInfo, car, discount, option, down, years, tr, trDep, qsExtraCost); // ส่ง qsExtraCost
+  updateQsInfo(carInfo, car, discount, option, down, years, tr, trDep, finalQsExtraCost);
   showDownPercent();
 }
 
-function updateQsInfo(carInfo, car, discount, option, down, years, tr, trDep, qsExtraCost) { // เพิ่ม qsExtraCost
-    document.getElementById('qsCarInfo').value = carInfo;
-    document.getElementById('qsCarPrice').value = format(car);
-    document.getElementById('qsDiscount').value = format(discount);
-    document.getElementById('qsOption').value = format(option);
-    document.getElementById('qsDownAmount').value = format(down);
-    document.getElementById('qsTrRate').value = isNaN(tr) ? 'ไม่สามารถคำนวณ' : format4(tr);
-    document.getElementById('qsTermYears').value = years;
-    document.getElementById('qsDeposit').value = format(down / 1.07, 4); // แสดง Deposit 4 ตำแหน่งทศนิยม
-    // ปรับการคำนวณ qsRV เป็น: เงินดาวน์ / ราคารวมทั้งหมด
-    const totalAmount = uncomma(document.getElementById('totalAmount').value); // ดึงค่าราคารวมทั้งหมดปัจจุบัน
-    document.getElementById('qsRV').value = format4(totalAmount > 0 ? (down / totalAmount * 100) : 0) + '%';
-    document.getElementById('qsTrDep').value = isNaN(trDep) ? 'ไม่สามารถคำนวณ' : format4(trDep);
-    document.getElementById('qsExtra').value = format(qsExtraCost); // ตรวจสอบให้แน่ใจว่าอัปเดตถูกต้อง
-}
-
-function calculateDownForTargetLease(targetLease) {
-  const getVal = id => uncomma(document.getElementById(id).value);
-  const getIntVal = id => parseInt(uncomma(document.getElementById(id).value)) || 0;
-
-  const car = getVal('carPrice');
-  const discount = getVal('discount');
-  const option = getVal('option');
-  const total = car - discount + option;
-  document.getElementById('totalAmount').value = format(total); // เพื่อให้แน่ใจว่าค่า totalAmount ถูกอัปเดตก่อนใช้งาน
-
-  const originalInterestRateInput = getVal('interestRate');
-  const rateType = document.getElementById('rateType').value;
-  let actualFlatRate = 0; // Flat Rate ที่จะใช้
-
-  const years = getIntVal('termYears');
-  const months = years * 12;
-
-  // ตรวจสอบที่จำเป็นก่อนดำเนินการคำนวณ
-  if (months === 0 || originalInterestRateInput === 0) {
-      alert("กรุณาระบุจำนวนปีและอัตราดอกเบี้ยก่อนคำนวณเงินดาวน์สำหรับค่างวดเป้าหมาย.");
-      return;
-  }
-  if (total <= 0) {
-      alert("กรุณาระบุราคารถให้ถูกต้อง (มากกว่า 0) เพื่อคำนวณเงินดาวน์.");
-      return;
-  }
-
-  let low = 0;
-  let high = total;
-  let bestDown = 0;
-  let minDiff = Infinity;
-
-  const maxIter = 500;
-
-  for (let i = 0; i < maxIter; i++) {
-    // คำนวณ currentDown โดยให้เป็นจำนวนเต็มสำหรับเงินดาวน์
-    const currentDown = Math.ceil((low + high) / 2); 
-
-    if (currentDown < 0) currentDown = 0;
-    if (currentDown > total) currentDown = total;
-
-    const finance = total - currentDown;
-
-    // สำหรับฟังก์ชัน `calculateDownForTargetLease` นี้ เพื่อความเรียบง่าย จะถือว่าอัตราดอกเบี้ยที่ป้อนเข้ามา
-    // เป็น Flat Rate เสมอในการคำนวณเงินดาวน์สำหรับค่างวดเป้าหมาย
-    // การทำให้ฟังก์ชันนี้รองรับ Effective Rate โดยตรงจะซับซ้อนกว่ามาก
-    actualFlatRate = originalInterestRateInput;
-
-    const intTotal = finance * (actualFlatRate / 100) * years;
-    const currentLease = months > 0 ? Math.ceil((finance + intTotal) / months) : 0;
-
-    const diff = Math.abs(currentLease - targetLease);
-
-    // ถ้าค่าความแตกต่างปัจจุบันน้อยกว่าค่าต่ำสุดที่เคยพบ ให้ปรับปรุง bestDown
-    if (diff < minDiff) {
-        minDiff = diff;
-        bestDown = currentDown;
-    }
-
-    // ตรวจสอบการบรรจบกัน หรือ currentDown ใกล้เคียงกับขอบเขตมาก
-    if (Math.abs(high - low) < 1 || diff < 0.1) { // ปรับปรุงการบรรจบกันสำหรับเงินดาวน์จำนวนเต็ม
-        break;
-    }
-
-    if (currentLease > targetLease) {
-      low = currentDown; // ถ้าค่างวดปัจจุบันสูงกว่าเป้าหมาย ต้องเพิ่มเงินดาวน์
-    } else {
-      high = currentDown; // ถ้าค่างวดปัจจุบันต่ำกว่าเป้าหมาย สามารถลดเงินดาวน์ได้
-    }
-  }
-
-  document.getElementById('downType').value = 'amount';
-  document.getElementById('downInput').value = formatNoDecimal(bestDown); // ใช้ formatNoDecimal ที่นี่
-  calculate(); // คำนวณค่าทั้งหมดใหม่โดยใช้เงินดาวน์ที่พบ
-}
-
-// ฟังก์ชันสำหรับสร้างใบเสนอราคา
-function generateQuotation() {
-    calculate(); // ตรวจสอบให้แน่ใจว่าค่าทั้งหมดเป็นปัจจุบันบนหน้าจอ
-
-    const data = {
-        carInfo: document.getElementById('carInfo').value,
-        carPrice: uncomma(document.getElementById('carPrice').value),
-        discount: uncomma(document.getElementById('discount').value),
-        option: uncomma(document.getElementById('option').value),
-        totalAmount: uncomma(document.getElementById('totalAmount').value),
-        downAmount: uncomma(document.getElementById('downAmount').value),
-        downPercent: parseFloat(document.getElementById('downPercentDisplay').innerText.replace(/[()%]/g, '')),
-        
-        rateType: document.getElementById('rateType').value, // เพิ่มประเภทดอกเบี้ย
-        interestRateInput: uncomma(document.getElementById('interestRate').value), // อัตราดอกเบี้ยที่ผู้ใช้กรอก
-        calculatedFlatRate: uncomma(document.getElementById('calculatedFlatRate').value), // Flat rate ที่ใช้จริง
-        termYears: parseInt(document.getElementById('termYears').value) || 0,
-        
-        comBase: document.getElementById('comBase').value,
-        comPercent: parseInt(document.getElementById('comPercent').value) || 0,
-        calculatedCommission: uncomma(document.getElementById('calculatedCommission').value),
-        extra: uncomma(document.getElementById('extra').value),
-        qsExtra: uncomma(document.getElementById('qsExtra').value), // นี่คือ qsExtraCost
-
-        financeAmt: uncomma(document.getElementById('financeAmt').value),
-        intPA: uncomma(document.getElementById('intPA').value),
-        intTotal: uncomma(document.getElementById('intTotal').value),
-        financeTotalWithInterest: uncomma(document.getElementById('financeTotalWithInterest').value),
-        leaseInVat: uncomma(document.getElementById('leaseInVat').value),
-        leaseExVat: uncomma(document.getElementById('leaseExVat').value),
-        trRate: parseFloat(document.getElementById('trRate').value.replace('ไม่สามารถคำนวณ', 'NaN')),
-        
-        // ข้อมูล QS (ตัวเลขดิบหรือสตริงตามที่ปรากฏในตาราง QS)
-        qsCarInfo: document.getElementById('qsCarInfo').value,
-        qsCarPrice: uncomma(document.getElementById('qsCarPrice').value),
-        qsDiscount: uncomma(document.getElementById('qsDiscount').value),
-        qsOption: uncomma(document.getElementById('qsOption').value),
-        qsDownAmount: uncomma(document.getElementById('qsDownAmount').value),
-        qsDownPercent: parseFloat(document.getElementById('qsDownPercent').value.replace(/[()%]/g, '')),
-        qsTrRate: parseFloat(document.getElementById('qsTrRate').value.replace('ไม่สามารถคำนวณ', 'NaN')),
-        qsTermYears: parseInt(document.getElementById('qsTermYears').value) || 0,
-        qsDeposit: uncomma(document.getElementById('qsDeposit').value),
-        qsRV: parseFloat(document.getElementById('qsRV').value.replace('%', '')),
-        qsTrDep: parseFloat(document.getElementById('qsTrDep').value.replace('ไม่สามารถคำนวณ', 'NaN')),
-    };
-
-    // ข้อมูลใบเสนอราคานี้ควรส่งไปยังหน้าแสดงใบเสนอราคาทั่วไป เช่น 'quotation.html'
-    localStorage.setItem('quotationData', JSON.stringify(data));
-    window.open('quotation.html', '_blank'); // สมมติว่าคุณมีไฟล์ quotation.html อยู่
-}
-
-
-// ฟังก์ชันใหม่สำหรับส่งข้อมูลไปยัง qs_data.html โดยเฉพาะ
-function sendToQsData() {
-    calculate(); // ตรวจสอบให้แน่ใจว่าค่าทั้งหมดเป็นปัจจุบันบนหน้าจอ
-
-    const qsExtraCost = uncomma(document.getElementById('qsExtra').value); // ดึงค่า QS Extra Cost ที่คำนวณได้
-    const downAmount = uncomma(document.getElementById('downAmount').value);
-    const totalAmount = uncomma(document.getElementById('totalAmount').value);
-    const trRateEffective = parseFloat(document.getElementById('trRate').value.replace('ไม่สามารถคำนวณ', 'NaN'));
-    const termYears = parseInt(document.getElementById('termYears').value) || 0;
-    const deposit = uncomma(document.getElementById('qsDeposit').value);
-    const rv = parseFloat(document.getElementById('qsRV').value.replace('%', ''));
-    const trDep = parseFloat(document.getElementById('qsTrDep').value.replace('ไม่สามารถคำนวณ', 'NaN'));
-    const downPercent = parseFloat(document.getElementById('downPercentDisplay').innerText.replace(/[()%]/g, ''));
-    const leaseExVat = uncomma(document.getElementById('leaseExVat').value); // เพิ่มค่านี้
-
-
-    const dataForQs = {
-        // ข้อมูลพื้นฐาน
-        carInfo: document.getElementById('carInfo').value,
-        carPrice: uncomma(document.getElementById('carPrice').value),
-        discount: uncomma(document.getElementById('discount').value),
-        option: uncomma(document.getElementById('option').value),
-        totalAmount: totalAmount,
-
-        // ค่าเฉพาะ QS (ตรงกับ ID จาก qs_data.html ของคุณ)
-        qsExtraCost: qsExtraCost,
-        downAmount: downAmount, // ใช้ downAmount หลัก
-        qsDownPercent: downPercent,
-        trRateEffective: trRateEffective,
-        termYears: termYears,
-        deposit: deposit,
-        rv: rv,
-        trDep: trDep,
-        leaseExVat: leaseExVat // ส่งค่านี้ไปด้วย
-    };
-
-    localStorage.setItem('qsData', JSON.stringify(dataForQs)); // เปลี่ยน key เป็น 'qsData'
-    window.open('qs_data.html', '_blank'); // เปลี่ยนไฟล์เป็น 'qs_data.html'
-}
-
+// ... (ฟังก์ชัน calculateDownForTargetLease, generateQuotation, sendToQsData, addInputListeners, window.onload เหมือนเดิม) ...
 
 // Event Listeners สำหรับช่องป้อนข้อมูล
 function addInputListeners(id) {
