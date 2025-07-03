@@ -458,7 +458,7 @@ function showDownPercent() {
   document.getElementById("qsDownPercent").value = format4(result) + '%';
 }
 
-// *** ฟังก์ชันใหม่ที่เพิ่มเข้ามาเพื่ออัปเดต QS Information ***
+// *** ฟังก์ชันที่เพิ่มเข้ามาเพื่ออัปเดต QS Information ***
 function updateQsInfo(carInfo, carPrice, discount, option, downAmount, termYears, trRate, trDep, qsExtraCost) {
     document.getElementById('qsCarInfo').value = carInfo;
     document.getElementById('qsCarPrice').value = format(carPrice);
@@ -647,78 +647,154 @@ function calculate() {
   showDownPercent(); // เรียก showDownPercent() เพื่ออัปเดตเปอร์เซ็นต์เงินดาวน์และ qsDownPercent
 }
 
-// ฟังก์ชันสำหรับคำนวณเงินดาวน์สำหรับค่างวดเป้าหมาย (ยังคงถือว่าดอกเบี้ยที่ป้อนเป็น Flat Rate)
+// *** ฟังก์ชัน calculateDownForTargetLease ที่ถูกปรับปรุงใหม่ ***
 function calculateDownForTargetLease(targetLease) {
-  const getVal = id => uncomma(document.getElementById(id).value);
-  const getIntVal = id => parseInt(uncomma(document.getElementById(id).value)) || 0;
+    const getVal = id => uncomma(document.getElementById(id).value);
+    const getIntVal = id => parseInt(uncomma(document.getElementById(id).value)) || 0;
 
-  const car = getVal('carPrice');
-  const discount = getVal('discount');
-  const option = getVal('option');
-  const total = car - discount + option;
-  document.getElementById('totalAmount').value = format(total);
+    const car = getVal('carPrice');
+    const discount = getVal('discount');
+    const option = getVal('option');
+    const total = car - discount + option;
+    document.getElementById('totalAmount').value = format(total);
 
-  const originalInterestRateInput = getVal('interestRate');
-  const years = getIntVal('termYears');
-  const months = years * 12;
+    const originalInterestRateInput = getVal('interestRate');
+    const years = getIntVal('termYears');
+    const months = years * 12;
 
-  // ตรวจสอบที่จำเป็นก่อนดำเนินการคำนวณ
-  if (months === 0 || originalInterestRateInput === 0) {
-      alert("กรุณาระบุจำนวนปีและอัตราดอกเบี้ยก่อนคำนวณเงินดาวน์สำหรับค่างวดเป้าหมาย.");
-      return;
-  }
-  if (total <= 0) {
-      alert("กรุณาระบุราคารถให้ถูกต้อง (มากกว่า 0) เพื่อคำนวณเงินดาวน์.");
-      return;
-  }
+    const rateType = document.getElementById('rateType').value; // Get current rateType
+    const comBase = document.getElementById('comBase').value;     // Get current comBase
+    const comPercent = getIntVal('comPercent');
+    const extra = getVal('extra');
 
-  let low = 0;
-  let high = total;
-  let bestDown = 0;
-  let minDiff = Infinity;
-
-  const maxIter = 500;
-  const tolerance = 0.5; // ยอมรับความคลาดเคลื่อนน้อยกว่า 0.5 บาทสำหรับค่างวด
-
-  for (let i = 0; i < maxIter; i++) {
-    const currentDown = Math.round((low + high) / 2); // ปัดเศษให้เงินดาวน์เป็นจำนวนเต็ม
-
-    if (currentDown < 0) currentDown = 0;
-    if (currentDown > total) currentDown = total;
-
-    const finance = total - currentDown;
-
-    // สำหรับฟังก์ชัน `calculateDownForTargetLease` นี้ เพื่อความเรียบง่าย จะถือว่าอัตราดอกเบี้ยที่ป้อนเข้ามา
-    // เป็น Flat Rate เสมอในการคำนวณเงินดาวน์สำหรับค่างวดเป้าหมาย
-    const actualFlatRate = originalInterestRateInput;
-
-    const intTotal = finance * (actualFlatRate / 100) * years;
-    const currentLease = months > 0 ? Math.ceil((finance + intTotal) / months) : 0;
-
-    const diff = Math.abs(currentLease - targetLease);
-
-    // ถ้าค่าความแตกต่างปัจจุบันน้อยกว่าค่าต่ำสุดที่เคยพบ ให้ปรับปรุง bestDown
-    if (diff < minDiff) {
-        minDiff = diff;
-        bestDown = currentDown;
+    if (months === 0 || originalInterestRateInput === 0) {
+        alert("กรุณาระบุจำนวนปีและอัตราดอกเบี้ยก่อนคำนวณเงินดาวน์สำหรับค่างวดเป้าหมาย.");
+        return;
+    }
+    if (total <= 0) {
+        alert("กรุณาระบุราคารถให้ถูกต้อง (มากกว่า 0) เพื่อคำนวณเงินดาวน์.");
+        return;
     }
 
-    // ตรวจสอบการบรรจบกัน
-    if (diff < tolerance) { 
-        break;
+    let lowDown = 0;
+    let highDown = total;
+    let bestDown = 0;
+    let minDiff = Infinity;
+
+    const maxIter = 500;
+    const tolerance = 0.5; // ยอมรับความคลาดเคลื่อนน้อยกว่า 0.5 บาทสำหรับค่างวด
+
+    for (let i = 0; i < maxIter; i++) {
+        const currentDown = Math.round((lowDown + highDown) / 2); // ใช้ Math.round
+        if (currentDown < 0) {
+            lowDown = 0; // ปรับ lowDown ไม่ให้ต่ำกว่า 0
+            continue; // ข้ามการคำนวณนี้ไป
+        }
+        if (currentDown > total) {
+            highDown = total; // ปรับ highDown ไม่ให้เกิน total
+            continue; // ข้ามการคำนวณนี้ไป
+        }
+        
+        const finance = total - currentDown;
+        if (finance < 0) { // ยอดจัดติดลบ หมายถึงเงินดาวน์มากเกินไป
+            highDown = currentDown - 1; // ลด highDown
+            continue;
+        }
+
+        let currentLeaseInVat = 0;
+        let intTotalForCommission = 0;
+        let currentCommission = 0;
+        let currentQsExtraCost = 0;
+
+        if (rateType === 'flat') {
+            const tempIntTotal = finance * (originalInterestRateInput / 100) * years;
+            currentLeaseInVat = Math.ceil((finance + tempIntTotal) / months);
+
+            if (comBase === "finance") {
+                currentCommission = Math.ceil(finance * (comPercent / 100));
+            } else { // comBase === "interest"
+                currentCommission = Math.ceil(tempIntTotal * (comPercent / 100));
+            }
+            currentQsExtraCost = currentCommission + extra;
+
+        } else { // rateType === 'effective' (IRR search within the main search)
+            const targetTrRateForThisIteration = originalInterestRateInput;
+
+            let innerLowLease = 1;
+            let innerHighLease = (finance * (1 + (originalInterestRateInput / 100) * years * 2)) / months;
+            if (innerHighLease < 1000) innerHighLease = 100000;
+
+            let bestInnerLease = 0;
+            let bestInnerCommission = 0;
+            let bestInnerQsExtraCost = 0;
+            let minInnerTrDiff = Infinity;
+            const innerTolerance = 0.0001; // Tolerance for inner IRR search
+
+            for (let j = 0; j < 100; j++) { // Reduced inner iterations for performance
+                let tempLeaseCandidate = Math.round((innerLowLease + innerHighLease) / 2);
+                if (tempLeaseCandidate <= 0) tempLeaseCandidate = 1;
+
+                const tempFinanceTotalWithInterest = tempLeaseCandidate * months;
+                const tempIntTotal = tempFinanceTotalWithInterest - finance;
+
+                let tempInnerCommission = 0;
+                if (comBase === "finance") {
+                    tempInnerCommission = Math.ceil(finance * (comPercent / 100));
+                } else { // comBase === "interest"
+                    tempInnerCommission = Math.ceil(tempIntTotal * (comPercent / 100));
+                }
+                const tempInnerExtraCost = tempInnerCommission + extra;
+
+                const pvForInnerTr = -(finance + (tempInnerCommission * 1.07) + (extra * 1.07));
+                let calculatedInnerTr = calculateIRR(months, tempLeaseCandidate, pvForInnerTr, 0, 0) * 12 * 100;
+                
+                const innerDiff = Math.abs(calculatedInnerTr - targetTrRateForThisIteration);
+
+                if (innerDiff < minInnerTrDiff) {
+                    minInnerTrDiff = innerDiff;
+                    bestInnerLease = tempLeaseCandidate;
+                    bestInnerCommission = tempInnerCommission;
+                    bestInnerQsExtraCost = tempInnerExtraCost;
+                }
+
+                if (innerDiff < innerTolerance) {
+                    break;
+                }
+
+                if (calculatedInnerTr > targetTrRateForThisIteration) {
+                    innerHighLease = tempLeaseCandidate;
+                } else {
+                    innerLowLease = tempLeaseCandidate;
+                }
+            }
+            currentLeaseInVat = bestInnerLease;
+            currentCommission = bestInnerCommission;
+            currentQsExtraCost = bestInnerQsExtraCost;
+        }
+
+        const diff = Math.abs(currentLeaseInVat - targetLease);
+
+        if (diff < minDiff) {
+            minDiff = diff;
+            bestDown = currentDown;
+        }
+
+        if (diff < tolerance) {
+            break;
+        }
+
+        if (currentLeaseInVat > targetLease) {
+            lowDown = currentDown; // ถ้าค่างวดปัจจุบันสูงกว่าเป้าหมาย ต้องเพิ่มเงินดาวน์
+        } else {
+            highDown = currentDown; // ถ้าค่างวดปัจจุบันต่ำกว่าเป้าหมาย สามารถลดเงินดาวน์ได้
+        }
     }
 
-    if (currentLease > targetLease) {
-      low = currentDown; // ถ้าค่างวดปัจจุบันสูงกว่าเป้าหมาย ต้องเพิ่มเงินดาวน์
-    } else {
-      high = currentDown; // ถ้าค่างวดปัจจุบันต่ำกว่าเป้าหมาย สามารถลดเงินดาวน์ได้
-    }
-  }
-
-  document.getElementById('downType').value = 'amount';
-  document.getElementById('downInput').value = formatNoDecimal(bestDown); 
-  calculate(); // คำนวณค่าทั้งหมดใหม่โดยใช้เงินดาวน์ที่พบ
+    document.getElementById('downType').value = 'amount';
+    document.getElementById('downInput').value = formatNoDecimal(bestDown);
+    calculate(); // คำนวณค่าทั้งหมดใหม่โดยใช้เงินดาวน์ที่พบ
 }
+
 
 // ฟังก์ชันสำหรับสร้างใบเสนอราคา
 function generateQuotation() {
@@ -755,7 +831,7 @@ function generateQuotation() {
         // ข้อมูล QS (ตัวเลขดิบหรือสตริงตามที่ปรากฏในตาราง QS)
         qsCarInfo: document.getElementById('qsCarInfo').value,
         qsCarPrice: uncomma(document.getElementById('qsCarPrice').value),
-        qsDiscount: uncomma(document.getElementById('qsDiscount').value),
+        qsDiscount: uncomma(document.getElementById('discount').value),
         qsOption: uncomma(document.getElementById('qsOption').value),
         qsDownAmount: uncomma(document.getElementById('qsDownAmount').value),
         qsDownPercent: parseFloat(document.getElementById('qsDownPercent').value.replace(/[()%]/g, '')),
