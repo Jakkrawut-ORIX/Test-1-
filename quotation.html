@@ -18,7 +18,7 @@
       --orix-border-color: #DDEBF5;
     }
     body {
-      font-family: 'Kanit', sans-serif;
+      font-family: 'Kanit', sans-serif; /* Ensure Kanit is used for Thai support */
       margin: 0;
       padding: 10px;
       background: var(--orix-light-grey);
@@ -121,101 +121,116 @@
         margin-top: 20px;
         padding-top: 10px;
         border-top: 1px dashed var(--orix-border-color);
-        display: flex; /* ใช้ flexbox เพื่อจัดวางให้อยู่ในบรรทัดเดียวกัน */
-        flex-wrap: wrap; /* ให้ขึ้นบรรทัดใหม่เมื่อหน้าจอเล็ก */
-        gap: 15px; /* ระยะห่างระหว่างช่อง */
-        font-size: 0.9em; /* ลดขนาดฟอนต์ของส่วนข้อมูลติดต่อโดยรวม */
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 15px; 
+        font-size: 0.9em; 
     }
     .contact-info-section .section-title {
-        width: 100%; /* ทำให้หัวข้ออยู่เต็มบรรทัด */
-        font-size: 0.9em; /* ลดขนาดฟอนต์หัวข้อข้อมูลติดต่อ */
+        width: 100%; 
+        font-size: 0.9em; 
         margin-top: 0;
     }
     .contact-info-item {
         display: flex;
-        align-items: center;
-        flex-grow: 1; /* ให้แต่ละ item ขยายเต็มพื้นที่ */
+        align-items: baseline; /* Align text baselines */
+        flex-grow: 1; 
+        min-width: 250px; /* Ensure items don't get too small on wider screens */
     }
     .contact-info-section label {
-        white-space: nowrap; /* ไม่ให้ข้อความ label ขึ้นบรรทัดใหม่ */
-        margin-right: 5px; /* ระยะห่างระหว่าง label กับ input */
+        white-space: nowrap; 
+        margin-right: 5px; 
         font-weight: 600;
-        font-size: 0.9em; /* ลดขนาดฟอนต์ของ label */
+        font-size: 0.9em; 
     }
     .contact-info-section input[type="text"] {
-        flex-grow: 1; /* ทำให้ input ขยายเต็มพื้นที่ที่เหลือ */
+        flex-grow: 1; 
         padding: 5px;
         border: 1px solid var(--orix-border-color);
         border-radius: 3px;
+        font-family: 'Kanit', sans-serif; /* Ensure input uses Kanit as well */
+        font-size: 0.9em; 
+    }
+    /* Style for the temporary text representation in PDF */
+    .contact-info-text-value {
+        flex-grow: 1;
+        padding: 5px;
         font-family: 'Kanit', sans-serif;
-        font-size: 0.9em; /* ลดขนาดฟอนต์ของ input */
+        font-size: 0.9em;
+        white-space: nowrap; /* Prevent line breaks for input text */
+        overflow: hidden; /* Hide overflow if text is too long */
+        text-overflow: ellipsis; /* Add ellipsis for overflow */
     }
 
 
     /* --- รูปแบบเฉพาะสำหรับมือถือ --- */
     @media only screen and (max-width: 600px) {
       body {
-        padding: 5px; /* ลดระยะขอบโดยรวม */
-        font-size: 10pt; /* ลดขนาดฟอนต์พื้นฐานสำหรับมือถือ */
+        padding: 5px; 
+        font-size: 10pt; 
       }
       .quotation-container {
-        padding: 10px; /* ลดระยะขอบในคอนเทนเนอร์ */
-        border: none; /* ลบเส้นขอบบนหน้าจอขนาดเล็กมากเพื่อให้ดูสะอาดขึ้น */
+        padding: 10px; 
+        border: none; 
       }
       .header {
-        flex-direction: row; /* เปลี่ยนเป็น row เพื่อให้โลโก้และข้อมูลบริษัทอยู่ข้างกัน */
-        justify-content: flex-end; /* รักษาการจัดระยะห่างระหว่างองค์ประกอบ */
-        align-items: center; /* จัดกึ่งกลางแนวตั้ง */
+        flex-direction: row; 
+        justify-content: flex-end; 
+        align-items: center; 
         padding-bottom: 5px;
         margin-bottom: 10px;
       }
       .logo img {
-        max-width: 50px; /* โลโก้เล็กลงสำหรับมือถือ */
+        max-width: 50px; 
       }
       .company-info p {
-        white-space: normal; /* อนุญาตให้ข้อความที่อยู่ขึ้นบรรทัดใหม่บนมือถือ */
-        font-size: 6pt; /* ลดขนาดลง 2pt จาก 8pt เดิมสำหรับมือถือ */
+        white-space: normal; 
+        font-size: 6pt; 
       }
       .company-info p .company-name {
-        font-size: 8pt; /* ให้ชื่อบริษัทใหญ่เท่าเดิมสำหรับมือถือ */
+        font-size: 8pt; 
       }
       h1 {
-        font-size: 1.2em; /* หัวข้อหลักเล็กลง */
+        font-size: 1.2em; 
         margin-bottom: 5px;
-        padding-bottom: 5px; /* Adjust padding for mobile */
+        padding-bottom: 5px; 
       }
       .section-title {
-        margin: 10px 0 3px; /* ลดระยะขอบหัวข้อส่วน */
+        margin: 10px 0 3px; 
         font-size: 0.95em;
       }
       .data-table td {
-        font-size: 0.9em; /* ลดขนาดฟอนต์ในเซลล์ตาราง */
+        font-size: 0.9em; 
         padding: 3px 0;
       }
       .highlight-value {
-        font-size: 1em; /* ปรับขนาดฟอนต์ของค่าที่เน้น */
+        font-size: 1em; 
       }
       .footer {
-        font-size: 0.7em; /* ลดขนาดฟอนต์ท้ายกระดาษ */
+        font-size: 0.7em; 
         margin-top: 15px;
         padding-top: 5px;
       }
       .export-button {
-        padding: 8px 15px; /* ลดขนาดปุ่ม */
-        font-size: 0.9em; /* ลดขนาดฟอนต์ปุ่ม */
+        padding: 8px 15px; 
+        font-size: 0.9em; 
       }
       .contact-info-section {
-          flex-direction: column; /* บนมือถือให้กลับมาเป็นคอลัมน์เพื่อให้จัดการง่าย */
-          gap: 5px; /* ลด gap บนมือถือ */
+          flex-direction: column; 
+          gap: 5px; 
       }
       .contact-info-item {
-          width: 100%; /* ให้เต็มความกว้าง */
+          width: 100%; 
+          min-width: unset; /* Reset min-width for mobile */
       }
       .contact-info-section label {
-        width: 80px; /* Adjust for mobile */
+        width: 80px; 
       }
       .contact-info-section input[type="text"] {
-        width: calc(100% - 90px); /* Adjust for mobile */
+        width: calc(100% - 90px); 
+      }
+      .contact-info-text-value {
+        width: calc(100% - 90px); 
       }
     }
 
@@ -224,99 +239,100 @@
       .export-button-container {
         display: none; /* ซ่อนปุ่มเมื่อพิมพ์ */
       }
-      /* ใช้ Universal Selector และ !important เพื่อให้แน่ใจว่ามีการ Override สไตล์ทั้งหมด */
+      /* ซ่อน input และแสดงผลข้อความแทน */
       .contact-info-section input[type="text"] {
+          display: none !important; /* Hide the input field completely */
+      }
+      .contact-info-text-value {
+          display: inline-block !important; /* Show the text value */
           border: none !important; 
           outline: none !important; 
           background: none !important; 
           box-shadow: none !important; 
-          padding: 0 !important; /* Reset padding */
-          margin: 0 !important; /* Reset margin */
-          vertical-align: baseline !important; /* Adjust vertical alignment if needed */
-          color: inherit !important; /* Ensure text color is inherited */
-          -webkit-appearance: none; /* For Safari/Chrome */
-          -moz-appearance: none; /* For Firefox */
-          appearance: none; /* Standard */
+          padding: 0 !important; 
+          margin: 0 !important; 
+          vertical-align: baseline !important; 
+          color: inherit !important; 
+          -webkit-print-color-adjust: exact; /* Ensure colors are printed exactly */
+          print-color-adjust: exact; /* Standard property */
       }
-      .contact-info-section input[type="text"]::placeholder {
-          color: transparent !important; /* Ensure placeholder text is hidden */
-      }
+
       .contact-info-section label {
           display: inline-block;
           white-space: nowrap;
           margin-right: 5px;
           font-weight: 600;
-          font-size: 0.9em; /* ลดขนาดฟอนต์ของ label */
+          font-size: 0.9em; 
       }
       .contact-info-section {
-          display: flex; /* คง flexbox สำหรับการพิมพ์ */
-          flex-direction: row; /* จัดเรียงเป็นแถว */
-          gap: 10mm; /* ระยะห่างระหว่างช่องสำหรับการพิมพ์ */
-          font-size: 0.9em; /* ลดขนาดฟอนต์ของส่วนข้อมูลติดต่อ */
+          display: flex; 
+          flex-direction: row; 
+          gap: 10mm; 
+          font-size: 0.9em; 
       }
       .contact-info-section .section-title {
-          width: 100%; /* หัวข้ออยู่เต็มบรรทัด */
-          font-size: 0.9em; /* ลดขนาดฟอนต์หัวข้อข้อมูลติดต่อ */
+          width: 100%; 
+          font-size: 0.9em; 
       }
       .contact-info-item {
-          flex-grow: 1; /* ให้แต่ละ item ขยายเต็มพื้นที่ */
-          display: flex; /* ให้ label และ input อยู่ในบรรทัดเดียวกัน */
-          align-items: baseline; /* จัดแนวตั้งให้ตรงกับ label */
+          flex-grow: 1; 
+          display: flex; 
+          align-items: baseline; 
       }
       body {
         margin: 0;
         padding: 0;
-        background: none; /* ไม่มีพื้นหลังเมื่อพิมพ์ */
-        font-size: 10pt; /* ขนาดฟอนต์ที่เหมาะสมสำหรับ A4 */
+        background: none; 
+        font-size: 10pt; 
       }
       .quotation-container {
-        width: 190mm; /* ความกว้างน้อยกว่า A4 เล็กน้อยสำหรับระยะขอบ */
-        margin: 10mm auto; /* จัดกึ่งกลางบน A4 โดยมีระยะขอบ 10 มม. ด้านบน/ล่าง */
-        padding: 15mm; /* ระยะขอบภายในสำหรับเนื้อหา */
-        border: 1px solid var(--orix-border-color); /* คงเส้นขอบสำหรับการพิมพ์ */
-        box-shadow: none; /* ไม่มีเงาเมื่อพิมพ์ */
+        width: 190mm; 
+        margin: 10mm auto; 
+        padding: 15mm; 
+        border: 1px solid var(--orix-border-color); 
+        box-shadow: none; 
         box-sizing: border-box;
       }
       .header {
-        margin-bottom: 15mm; /* เพิ่มระยะขอบ header สำหรับการพิมพ์ */
+        margin-bottom: 15mm; 
         padding-bottom: 5mm;
-        align-items: center; /* จัดกึ่งกลางแนวตั้ง */
+        align-items: center; 
       }
       .logo {
-          display: none; /* ซ่อนโลโก้ในการพิมพ์ */
+          display: none; 
       }
       .company-info {
-          text-align: right; /* จัดข้อมูลบริษัทชิดขวา */
+          text-align: right; 
       }
       .company-info p {
-        margin: 0; /* ลบ margin เริ่มต้นของ p เพื่อให้ชิดกันในการพิมพ์ */
-        white-space: nowrap; /* ป้องกันไม่ให้ข้อความขึ้นบรรทัดใหม่โดยไม่จำเป็นในการพิมพ์ */
-        font-size: 7pt; /* ลดขนาดลง 2pt จาก 7pt เดิมสำหรับการพิมพ์ */
+        margin: 0; 
+        white-space: nowrap; 
+        font-size: 7pt; 
       }
       .company-info p .company-name {
-        font-size: 9pt; /* ให้ชื่อบริษัทใหญ่เท่าเดิมสำหรับการพิมพ์ */
+        font-size: 9pt; 
       }
       h1 {
-        font-size: 1.3em; /* ปรับขนาดหัวข้อหลักให้เหมาะสมกับการพิมพ์ */
+        font-size: 1.3em; 
         margin-bottom: 10mm;
-        padding-bottom: 5mm; /* ปรับ padding สำหรับการพิมพ์ */
+        padding-bottom: 5mm; 
       }
       .section-title {
-        margin: 8mm 0 3mm; /* ปรับระยะขอบหัวข้อส่วนให้เหมาะสมกับการพิมพ์ */
+        margin: 8mm 0 3mm; 
         font-size: 1em;
       }
       .data-table {
-        margin-bottom: 5mm; /* ปรับระยะขอบตารางให้เหมาะสมกับการพิมพ์ */
+        margin-bottom: 5mm; 
       }
       .data-table td {
-        padding: 3mm 0; /* ปรับระยะขอบเซลล์ให้เหมาะสมกับการพิมพ์ */
+        padding: 3mm 0; 
         font-size: 0.9em;
       }
       .highlight-value {
         font-size: 1.0em;
       }
       .footer {
-        margin-top: 15mm; /* ปรับระยะขอบท้ายกระดาษให้เหมาะสมกับการพิมพ์ */
+        margin-top: 15mm; 
         padding-top: 5mm;
         font-size: 0.8em;
       }
@@ -362,10 +378,12 @@
       <div class="contact-info-item">
         <label for="contactName">ชื่อ:</label>
         <input type="text" id="contactName" name="contactName" placeholder="กรอกชื่อผู้ติดต่อ" />
+        <span class="contact-info-text-value" id="contactNameDisplay" style="display: none;"></span>
       </div>
       <div class="contact-info-item">
         <label for="contactPhone">เบอร์โทรศัพท์:</label>
         <input type="text" id="contactPhone" name="contactPhone" placeholder="กรอกเบอร์โทรศัพท์" />
+        <span class="contact-info-text-value" id="contactPhoneDisplay" style="display: none;"></span>
       </div>
     </div>
 
@@ -432,31 +450,42 @@
       const box = document.querySelector('.quotation-container');
       const btn = document.querySelector('.export-button-container');
 
-      // ซ่อนปุ่มชั่วคราวก่อนจับภาพ
+      // 1. ซ่อนปุ่มก่อนจับภาพ
       btn.style.display = 'none'; 
+
+      // 2. ซ่อน input และแสดง span ที่มีค่า text แทน
+      const contactNameInput = document.getElementById('contactName');
+      const contactNameDisplay = document.getElementById('contactNameDisplay');
+      const contactPhoneInput = document.getElementById('contactPhone');
+      const contactPhoneDisplay = document.getElementById('contactPhoneDisplay');
+
+      contactNameDisplay.textContent = contactNameInput.value;
+      contactPhoneDisplay.textContent = contactPhoneInput.value;
+      
+      contactNameInput.style.display = 'none';
+      contactPhoneInput.style.display = 'none';
+      contactNameDisplay.style.display = 'inline-block';
+      contactPhoneDisplay.style.display = 'inline-block';
 
       try {
         const canvas = await html2canvas(box, { 
-          scale: 2, // เพิ่มสเกลเพื่อเพิ่มความคมชัด
+          scale: 2, 
           useCORS: true,
-          windowWidth: document.querySelector('.quotation-container').scrollWidth, // จับภาพความกว้างทั้งหมด
-          windowHeight: document.querySelector('.quotation-container').scrollHeight // จับภาพความสูงทั้งหมด
+          windowWidth: document.querySelector('.quotation-container').scrollWidth, 
+          windowHeight: document.querySelector('.quotation-container').scrollHeight 
         });
-        const img = canvas.toDataURL('image/jpeg', 0.7); // ใช้ JPEG และกำหนดคุณภาพ 0.7 เพื่อลดขนาดไฟล์
+        const img = canvas.toDataURL('image/jpeg', 0.7); 
         
-        // ขนาด A4 ในหน่วยมิลลิเมตร (210 มม. x 297 มม.)
         const pdfW = 210; 
         const pdfH = 297; 
 
-        // คำนวณขนาดรูปภาพให้พอดีกับ PDF โดยรักษาสัดส่วน
         const imgCanvasWidth = canvas.width;
         const imgCanvasHeight = canvas.height;
 
-        let imgPdfWidth = pdfW - 20; // 10 มม. ระยะขอบแต่ละด้าน (รวม 20 มม. สำหรับซ้ายขวา)
+        let imgPdfWidth = pdfW - 20; 
         let imgPdfHeight = (imgCanvasHeight * imgPdfWidth) / imgCanvasWidth;
 
-        // หากรูปภาพสูงเกินไป ให้ย่อขนาดลงเพื่อให้พอดีกับความสูงของ PDF พร้อมระยะขอบ
-        if (imgPdfHeight > pdfH - 20) { // 10 มม. ระยะขอบด้านบน/ล่าง (รวม 20 มม. สำหรับบนล่าง)
+        if (imgPdfHeight > pdfH - 20) { 
             imgPdfHeight = pdfH - 20;
             imgPdfWidth = (imgCanvasWidth * imgPdfHeight) / imgCanvasHeight;
         }
@@ -464,17 +493,23 @@
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
 
-        // กำหนดตำแหน่ง X และ Y เพื่อให้รูปภาพอยู่กึ่งกลางหน้า
         const xPos = (pdfW - imgPdfWidth) / 2;
         const yPos = (pdfH - imgPdfHeight) / 2;
 
-        pdf.addImage(img, 'JPEG', xPos, yPos, imgPdfWidth, imgPdfHeight); // ใช้ 'JPEG'
+        pdf.addImage(img, 'JPEG', xPos, yPos, imgPdfWidth, imgPdfHeight); 
         
-        pdf.save("ใบเสนอราคา.pdf"); // ตั้งชื่อไฟล์ให้สื่อความหมายมากขึ้น
+        pdf.save("ใบเสนอราคา.pdf"); 
       } catch (err) {
+        console.error("การ Export PDF ล้มเหลว:", err);
         alert("การ Export PDF ล้มเหลว: " + err.message);
       } finally {
-        // แสดงปุ่มอีกครั้งเมื่อกระบวนการเสร็จสิ้น
+        // 3. แสดง input และซ่อน span กลับคืน
+        contactNameInput.style.display = ''; // Reset to default display
+        contactPhoneInput.style.display = ''; // Reset to default display
+        contactNameDisplay.style.display = 'none';
+        contactPhoneDisplay.style.display = 'none';
+
+        // 4. แสดงปุ่มอีกครั้งเมื่อกระบวนการเสร็จสิ้น
         btn.style.display = 'block'; 
       }
     }
