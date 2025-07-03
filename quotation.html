@@ -124,7 +124,7 @@
         display: flex; /* ใช้ flexbox เพื่อจัดวางให้อยู่ในบรรทัดเดียวกัน */
         flex-wrap: wrap; /* ให้ขึ้นบรรทัดใหม่เมื่อหน้าจอเล็ก */
         gap: 15px; /* ระยะห่างระหว่างช่อง */
-        font-size: 0.9em; /* ลดขนาดฟอนต์ของส่วนข้อมูลติดต่อ */
+        font-size: 0.9em; /* ลดขนาดฟอนต์ของส่วนข้อมูลติดต่อโดยรวม */
     }
     .contact-info-section .section-title {
         width: 100%; /* ทำให้หัวข้ออยู่เต็มบรรทัด */
@@ -140,6 +140,7 @@
         white-space: nowrap; /* ไม่ให้ข้อความ label ขึ้นบรรทัดใหม่ */
         margin-right: 5px; /* ระยะห่างระหว่าง label กับ input */
         font-weight: 600;
+        font-size: 0.9em; /* ลดขนาดฟอนต์ของ label */
     }
     .contact-info-section input[type="text"] {
         flex-grow: 1; /* ทำให้ input ขยายเต็มพื้นที่ที่เหลือ */
@@ -147,7 +148,7 @@
         border: 1px solid var(--orix-border-color);
         border-radius: 3px;
         font-family: 'Kanit', sans-serif;
-        font-size: 0.95em;
+        font-size: 0.9em; /* ลดขนาดฟอนต์ของ input */
     }
 
 
@@ -224,10 +225,13 @@
         display: none; /* ซ่อนปุ่มเมื่อพิมพ์ */
       }
       .contact-info-section input[type="text"] {
-          border: none; /* ซ่อนเส้นขอบของช่องกรอกข้อมูลเมื่อพิมพ์ */
+          border: none !important; /* Force no border */
+          outline: none !important; /* Remove outline on focus */
           padding: 0;
           width: auto; /* ให้ความกว้างปรับตามเนื้อหา */
           display: inline-block; /* ให้อยู่ในบรรทัดเดียวกับ label */
+          background-color: transparent !important; /* Ensure no background */
+          box-shadow: none !important; /* No box shadow */
       }
       /* ซ่อน placeholder text ในโหมดพิมพ์ */
       .contact-info-section input[type="text"]::placeholder {
@@ -238,6 +242,7 @@
           white-space: nowrap;
           margin-right: 5px;
           font-weight: 600;
+          font-size: 0.9em; /* ลดขนาดฟอนต์ของ label */
       }
       .contact-info-section {
           display: flex; /* คง flexbox สำหรับการพิมพ์ */
