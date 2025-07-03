@@ -63,6 +63,8 @@
       color: var(--orix-logo-blue);
       font-size: 1.4em;
       margin-bottom: 10px;
+      border-bottom: 2px solid var(--orix-logo-blue); /* เพิ่มเส้นใต้ H1 */
+      padding-bottom: 10px; /* เพิ่มระยะห่างระหว่าง H1 กับเส้นใต้ */
     }
     .section-title {
       font-weight: 600;
@@ -125,11 +127,11 @@
     }
     .contact-info-section label {
         display: inline-block;
-        width: 120px; /* Adjust as needed for alignment */
+        width: 120px; /* ปรับเพื่อการจัดแนว */
         font-weight: 600;
     }
     .contact-info-section input[type="text"] {
-        width: calc(100% - 130px); /* Adjust based on label width */
+        width: calc(100% - 130px); /* ปรับตามความกว้างของ label */
         padding: 5px;
         border: 1px solid var(--orix-border-color);
         border-radius: 3px;
@@ -168,6 +170,7 @@
       h1 {
         font-size: 1.2em; /* หัวข้อหลักเล็กลง */
         margin-bottom: 5px;
+        padding-bottom: 5px; /* ปรับ padding สำหรับมือถือ */
       }
       .section-title {
         margin: 10px 0 3px; /* ลดระยะขอบหัวข้อส่วน */
@@ -190,10 +193,10 @@
         font-size: 0.9em; /* ลดขนาดฟอนต์ปุ่ม */
       }
       .contact-info-section label {
-        width: 80px; /* Adjust for mobile */
+        width: 80px; /* ปรับสำหรับมือถือ */
       }
       .contact-info-section input[type="text"] {
-        width: calc(100% - 90px); /* Adjust for mobile */
+        width: calc(100% - 90px); /* ปรับสำหรับมือถือ */
       }
     }
 
@@ -203,14 +206,14 @@
         display: none; /* ซ่อนปุ่มเมื่อพิมพ์ */
       }
       .contact-info-section input[type="text"] {
-          border: none; /* Hide borders for inputs when printing */
+          border: none; /* ซ่อนเส้นขอบของช่องกรอกข้อมูลเมื่อพิมพ์ */
           padding: 0;
-          width: auto; /* Allow content to dictate width */
-          display: inline-block; /* Keep it in line with the label */
+          width: auto; /* ให้ความกว้างปรับตามเนื้อหา */
+          display: inline-block; /* ให้อยู่ในบรรทัดเดียวกับ label */
       }
       .contact-info-section label {
           display: inline-block;
-          width: 80px; /* Adjust as needed for alignment */
+          width: 80px; /* ปรับเพื่อการจัดแนว */
           font-weight: 600;
       }
       body {
@@ -249,6 +252,7 @@
       h1 {
         font-size: 1.3em; /* ปรับขนาดหัวข้อหลักให้เหมาะสมกับการพิมพ์ */
         margin-bottom: 10mm;
+        padding-bottom: 5mm; /* ปรับ padding สำหรับการพิมพ์ */
       }
       .section-title {
         margin: 8mm 0 3mm; /* ปรับระยะขอบหัวข้อส่วนให้เหมาะสมกับการพิมพ์ */
@@ -381,35 +385,31 @@
       const box = document.querySelector('.quotation-container');
       const btn = document.querySelector('.export-button-container');
 
-      // Temporarily hide the button before capturing the screenshot
+      // ซ่อนปุ่มชั่วคราวก่อนจับภาพ
       btn.style.display = 'none'; 
-
-      // Get contact info to embed in the PDF
-      const contactName = document.getElementById('contactName').value;
-      const contactPhone = document.getElementById('contactPhone').value;
 
       try {
         const canvas = await html2canvas(box, { 
-          scale: 2, // Increase scale for better clarity
+          scale: 2, // เพิ่มสเกลเพื่อเพิ่มความคมชัด
           useCORS: true,
-          windowWidth: document.querySelector('.quotation-container').scrollWidth, // Capture full width
-          windowHeight: document.querySelector('.quotation-container').scrollHeight // Capture full height
+          windowWidth: document.querySelector('.quotation-container').scrollWidth, // จับภาพความกว้างทั้งหมด
+          windowHeight: document.querySelector('.quotation-container').scrollHeight // จับภาพความสูงทั้งหมด
         });
-        const img = canvas.toDataURL('image/jpeg', 0.7); // Use JPEG with 0.7 quality to reduce file size
+        const img = canvas.toDataURL('image/jpeg', 0.7); // ใช้ JPEG และกำหนดคุณภาพ 0.7 เพื่อลดขนาดไฟล์
         
-        // A4 dimensions in mm (210 mm x 297 mm)
+        // ขนาด A4 ในหน่วยมิลลิเมตร (210 มม. x 297 มม.)
         const pdfW = 210; 
         const pdfH = 297; 
 
-        // Calculate image size to fit PDF while maintaining aspect ratio
+        // คำนวณขนาดรูปภาพให้พอดีกับ PDF โดยรักษาสัดส่วน
         const imgCanvasWidth = canvas.width;
         const imgCanvasHeight = canvas.height;
 
-        let imgPdfWidth = pdfW - 20; // 10mm margin on each side (total 20mm for left/right)
+        let imgPdfWidth = pdfW - 20; // 10 มม. ระยะขอบแต่ละด้าน (รวม 20 มม. สำหรับซ้ายขวา)
         let imgPdfHeight = (imgCanvasHeight * imgPdfWidth) / imgCanvasWidth;
 
-        // If image is too tall, scale it down to fit PDF height with margins
-        if (imgPdfHeight > pdfH - 20) { // 10mm top/bottom margin (total 20mm for top/bottom)
+        // หากรูปภาพสูงเกินไป ให้ย่อขนาดลงเพื่อให้พอดีกับความสูงของ PDF พร้อมระยะขอบ
+        if (imgPdfHeight > pdfH - 20) { // 10 มม. ระยะขอบด้านบน/ล่าง (รวม 20 มม. สำหรับบนล่าง)
             imgPdfHeight = pdfH - 20;
             imgPdfWidth = (imgCanvasWidth * imgPdfHeight) / imgCanvasHeight;
         }
@@ -417,32 +417,17 @@
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
 
-        // Calculate X and Y positions to center the image on the page
+        // กำหนดตำแหน่ง X และ Y เพื่อให้รูปภาพอยู่กึ่งกลางหน้า
         const xPos = (pdfW - imgPdfWidth) / 2;
         const yPos = (pdfH - imgPdfHeight) / 2;
 
-        pdf.addImage(img, 'JPEG', xPos, yPos, imgPdfWidth, imgPdfHeight); // Use 'JPEG'
-
-        // Add contact information to the PDF if available
-        pdf.setFont('Kanit', 'normal'); // You might need to add Kanit font to jsPDF for this to work correctly
-        pdf.setFontSize(10); // Set font size for contact info
-        let textYPos = imgPdfHeight + yPos + 5; // Position below the captured image
-
-        if (contactName || contactPhone) {
-            // Check if there's enough space, otherwise add a new page
-            if (textYPos + 15 > pdfH) { 
-                pdf.addPage();
-                textYPos = 15; // Start from top of new page
-            }
-            pdf.text(xPos + 5, textYPos, `ชื่อผู้ติดต่อ: ${contactName || '-'}`); // Add some left padding
-            pdf.text(xPos + 5, textYPos + 7, `เบอร์โทรศัพท์: ${contactPhone || '-'}`);
-        }
+        pdf.addImage(img, 'JPEG', xPos, yPos, imgPdfWidth, imgPdfHeight); // ใช้ 'JPEG'
         
-        pdf.save("ใบเสนอราคา_ORIX.pdf"); // Save the file with a meaningful name
+        pdf.save("ใบเสนอราคา_ORIX.pdf"); // ตั้งชื่อไฟล์ที่สื่อความหมาย
       } catch (err) {
         alert("การ Export PDF ล้มเหลว: " + err.message);
       } finally {
-        // Show the button again after the process is complete
+        // แสดงปุ่มอีกครั้งเมื่อกระบวนการเสร็จสิ้น
         btn.style.display = 'block'; 
       }
     }
