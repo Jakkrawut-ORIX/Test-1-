@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>ใบเสนอราคา - ORIX Lease</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --orix-logo-blue: #003366;
+      --orix-logo-red: #E30613;
+      --orix-white: #FFFFFF;
+      --orix-light-grey: #F8FBFD;
+      --orix-dark-grey: #333333;
+      --orix-mid-grey: #555555;
+      --orix-border-color: #DDEBF5;
+    }
+    body {
+      font-family: 'Kanit', sans-serif;
+      margin: 0;
+      padding: 10px;
+      background: var(--orix-light-grey);
+      color: var(--orix-dark-grey);
+      font-size: 11pt; /* ขนาดฟอนต์พื้นฐาน */
+    }
+    .quotation-container {
+      max-width: 800px;
+      margin: auto;
+      background: var(--orix-white);
+      padding: 15px;
+      border: 1px solid var(--orix-border-color);
+      box-sizing: border-box;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between; /* โลโก้ซ้ายสุด, ข้อมูลบริษัทขวาสุด */
+      align-items: center; /* จัดกึ่งกลางในแนวตั้งระหว่างโลโก้กับข้อมูลบริษัท */
+      flex-wrap: wrap;
+      border-bottom: 2px solid var(--orix-logo-blue);
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+    .logo img {
+      max-width: 75px; /* ลดขนาดโลโก้ลงอีก */
+      height: auto;
+    }
+    .company-info {
+      text-align: right;
+      color: var(--orix-mid-grey);
+      line-height: 1.1; /* ทำให้ระยะห่างระหว่างบรรทัดของที่อยู่กระชับขึ้น */
+      margin-top: 0; /* ลบ margin-top เพราะ align-items: center จะจัดการให้ */
+    }
+    .company-info p {
+        margin: 0; /* ลบ margin เริ่มต้นของ p เพื่อให้ชิดกัน */
+        white-space: nowrap; /* ป้องกันไม่ให้ข้อความขึ้นบรรทัดใหม่โดยไม่จำเป็น */
+        font-size: 7pt; /* ลดขนาดที่อยู่และเบอร์โทรศัพท์ลง 2pt จาก 9pt เดิม */
+    }
+    .company-info p .company-name {
+        font-size: 9pt; /* ให้ชื่อบริษัทใหญ่เท่าเดิม */
+        font-weight: 600; /* เพิ่มความหนาให้ชื่อบริษัทโดดเด่นขึ้น */
+        white-space: normal; /* อนุญาตให้ชื่อบริษัทขึ้นบรรทัดใหม่ได้ หากยาวเกินไป */
+    }
+    h1 {
+      text-align: center;
+      color: var(--orix-logo-blue);
+      font-size: 1.4em;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-weight: 600;
+      margin: 15px 0 5px;
+      color: var(--orix-logo-blue);
+      border-bottom: 1px dashed var(--orix-border-color);
+      padding-bottom: 3px;
+    }
+    .data-table {
+      width: 100%;
+      margin-bottom: 10px;
+      border-collapse: collapse;
+    }
+    .data-table td {
+      padding: 4px 0;
+      font-size: 0.95em;
+    }
+    .label {
+      width: 60%;
+      font-weight: 400;
+    }
+    .value {
+      width: 40%;
+      text-align: right;
+      font-weight: 600;
+    }
+    .highlight-value {
+      color: var(--orix-logo-red);
+      font-size: 1.05em;
+    }
+    .footer {
+      text-align: center;
+      font-size: 0.8em;
+      color: var(--orix-mid-grey);
+      border-top: 1px solid var(--orix-border-color);
+      margin-top: 20px;
+      padding-top: 8px;
+    }
+    .export-button-container {
+      text-align: center;
+      margin: 20px 0 10px;
+    }
+    .export-button {
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: var(--orix-logo-blue);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    /* --- รูปแบบเฉพาะสำหรับมือถือ --- */
+    @media only screen and (max-width: 600px) {
+      body {
+        padding: 5px; /* ลดระยะขอบโดยรวม */
+        font-size: 10pt; /* ลดขนาดฟอนต์พื้นฐานสำหรับมือถือ */
+      }
+      .quotation-container {
+        padding: 10px; /* ลดระยะขอบในคอนเทนเนอร์ */
+        border: none; /* ลบเส้นขอบบนหน้าจอขนาดเล็กมากเพื่อให้ดูสะอาดขึ้น */
+      }
+      .header {
+        flex-direction: row; /* เปลี่ยนเป็น row เพื่อให้โลโก้และข้อมูลบริษัทอยู่ข้างกัน */
+        justify-content: space-between; /* รักษาการจัดระยะห่างระหว่างองค์ประกอบ */
+        align-items: center; /* จัดกึ่งกลางแนวตั้ง */
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+      }
+      .logo img {
+        max-width: 50px; /* โลโก้เล็กลงสำหรับมือถือ */
+      }
+      .company-info p {
+        white-space: normal; /* อนุญาตให้ข้อความที่อยู่ขึ้นบรรทัดใหม่บนมือถือ */
+        font-size: 6pt; /* ลดขนาดลง 2pt จาก 8pt เดิมสำหรับมือถือ */
+      }
+      .company-info p .company-name {
+        font-size: 8pt; /* ให้ชื่อบริษัทใหญ่เท่าเดิมสำหรับมือถือ */
+      }
+      h1 {
+        font-size: 1.2em; /* หัวข้อหลักเล็กลง */
+        margin-bottom: 5px;
+      }
+      .section-title {
+        margin: 10px 0 3px; /* ลดระยะขอบหัวข้อส่วน */
+        font-size: 0.95em;
+      }
+      .data-table td {
+        font-size: 0.9em; /* ลดขนาดฟอนต์ในเซลล์ตาราง */
+        padding: 3px 0;
+      }
+      .highlight-value {
+        font-size: 1em; /* ปรับขนาดฟอนต์ของค่าที่เน้น */
+      }
+      .footer {
+        font-size: 0.7em; /* ลดขนาดฟอนต์ท้ายกระดาษ */
+        margin-top: 15px;
+        padding-top: 5px;
+      }
+      .export-button {
+        padding: 8px 15px; /* ลดขนาดปุ่ม */
+        font-size: 0.9em; /* ลดขนาดฟอนต์ปุ่ม */
+      }
+    }
+
+    /* --- รูปแบบเฉพาะสำหรับการพิมพ์ (A4 PDF) --- */
+    @media print {
+      .export-button-container {
+        display: none; /* ซ่อนปุ่มเมื่อพิมพ์ */
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: none; /* ไม่มีพื้นหลังเมื่อพิมพ์ */
+        font-size: 10pt; /* ขนาดฟอนต์ที่เหมาะสมสำหรับ A4 */
+      }
+      .quotation-container {
+        width: 190mm; /* ความกว้างน้อยกว่า A4 เล็กน้อยสำหรับระยะขอบ */
+        margin: 10mm auto; /* จัดกึ่งกลางบน A4 โดยมีระยะขอบ 10 มม. ด้านบน/ล่าง */
+        padding: 15mm; /* ระยะขอบภายในสำหรับเนื้อหา */
+        border: 1px solid var(--orix-border-color); /* คงเส้นขอบสำหรับการพิมพ์ */
+        box-shadow: none; /* ไม่มีเงาเมื่อพิมพ์ */
+        box-sizing: border-box;
+      }
+      .header {
+        margin-bottom: 15mm; /* เพิ่มระยะขอบ header สำหรับการพิมพ์ */
+        padding-bottom: 5mm;
+        align-items: center; /* จัดกึ่งกลางแนวตั้ง */
+      }
+      .logo img {
+        max-width: 65px; /* ปรับขนาดโลโก้ให้เหมาะสมกับการพิมพ์ */
+      }
+      .company-info p {
+        margin: 0; /* ลบ margin เริ่มต้นของ p เพื่อให้ชิดกันในการพิมพ์ */
+        white-space: nowrap; /* ป้องกันไม่ให้ข้อความขึ้นบรรทัดใหม่โดยไม่จำเป็นในการพิมพ์ */
+        font-size: 5pt; /* ลดขนาดลง 2pt จาก 7pt เดิมสำหรับการพิมพ์ */
+      }
+      .company-info p .company-name {
+        font-size: 7pt; /* ให้ชื่อบริษัทใหญ่เท่าเดิมสำหรับการพิมพ์ */
+      }
+      h1 {
+        font-size: 1.3em; /* ปรับขนาดหัวข้อหลักให้เหมาะสมกับการพิมพ์ */
+        margin-bottom: 10mm;
+      }
+      .section-title {
+        margin: 8mm 0 3mm; /* ปรับระยะขอบหัวข้อส่วนให้เหมาะสมกับการพิมพ์ */
+        font-size: 1em;
+      }
+      .data-table {
+        margin-bottom: 5mm; /* ปรับระยะขอบตารางให้เหมาะสมกับการพิมพ์ */
+      }
+      .data-table td {
+        padding: 3mm 0; /* ปรับระยะขอบเซลล์ให้เหมาะสมกับการพิมพ์ */
+        font-size: 0.9em;
+      }
+      .highlight-value {
+        font-size: 1.0em;
+      }
+      .footer {
+        margin-top: 15mm; /* ปรับระยะขอบท้ายกระดาษให้เหมาะสมกับการพิมพ์ */
+        padding-top: 5mm;
+        font-size: 0.8em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="quotation-container">
+    <div class="header">
+      <div class="logo">
+        <img src="orix_logo.png" alt="ORIX Logo" />
+      </div>
+      <div class="company-info">
+        <p><span class="company-name">บริษัท ไทยโอริกซ์ลีสซิ่ง จำกัด</span></p>
+        <p>555 รสา วัน (อาคาร บี) ยูนิต 1801 ชั้น 18 และ ชั้น 19</p>
+        <p>ถนนพหลโยธิน แขวงจตุจักร เขตจตุจักร</p>
+        <p>กรุงเทพฯ 10900</p>
+        <p>โทรศัพท์: 66(0) 2792-4500</p>
+      </div>
+    </div>
+
+    <h1>ใบเสนอราคาเบื้องต้น</h1>
+
+    <div class="section-title">ข้อมูลรถยนต์</div>
+    <table class="data-table">
+      <tr><td class="label">ข้อมูลรถ:</td><td class="value" id="q_carInfo"></td></tr>
+      <tr><td class="label">ราคารถ:</td><td class="value" id="q_carPrice"></td></tr>
+      <tr><td class="label">ส่วนลด:</td><td class="value" id="q_discount"></td></tr>
+      <tr><td class="label">Option:</td><td class="value" id="q_option"></td></tr>
+      <tr><td class="label">ราคาสุทธิ:</td><td class="value highlight-value" id="q_totalAmount"></td></tr>
+    </table>
+
+    <div class="section-title">เงื่อนไขการเช่าซื้อ</div>
+    <table class="data-table">
+      <tr><td class="label">เงินดาวน์:</td><td class="value highlight-value" id="q_downAmount_condition"></td></tr>
+      <tr><td class="label">เงินดาวน์คิดเป็น:</td><td class="value" id="q_downPercent"></td></tr>
+      <tr><td class="label">ยอดจัด:</td><td class="value highlight-value" id="q_financeAmt"></td></tr>
+      <tr><td class="label">อัตราดอกเบี้ย:</td><td class="value" id="q_interestRate"></td></tr>
+      <tr><td class="label">จำนวนปี:</td><td class="value" id="q_termYears"></td></tr>
+      <tr><td class="label">จำนวนงวด:</td><td class="value" id="q_termMonths"></td></tr>
+    </table>
+
+    <div class="section-title">สรุปการชำระ</div>
+    <table class="data-table">
+      <tr><td class="label">เงินดาวน์:</td><td class="value highlight-value" id="q_downAmount_summary"></td></tr>
+      <tr><td class="label">ค่างวดต่อเดือน (รวม VAT):</td><td class="value highlight-value" id="q_leaseInVat"></td></tr>
+    </table>
+
+    <div class="footer">
+      <p>ใบเสนอราคานี้เป็นข้อมูลเบื้องต้นและอาจมีการเปลี่ยนแปลงตามเงื่อนไขของบริษัท</p>
+      <p>โปรดติดต่อเจ้าหน้าที่ บริษัท ไทยโอริกซ์ลีสซิ่ง จำกัด เพื่อขอใบเสนอราคาอีกครั้ง</p>
+      <p>วันที่ออกใบเสนอราคา: <span id="currentDate"></span></p>
+    </div>
+
+    <div class="export-button-container">
+      <button class="export-button" onclick="exportQuotationAsPdf()">Export PDF</button>
+    </div>
+  </div>
+
+  <script>
+    // ฟังก์ชันช่วยจัดรูปแบบตัวเลขให้มีทศนิยม 2 ตำแหน่ง
+    const fmt = n => isFinite(n) ? Number(n).toLocaleString('en-US', {minimumFractionDigits:2}) : '0.00';
+    // ฟังก์ชันช่วยจัดรูปแบบเปอร์เซ็นต์ให้มีทศนิยม 2 ตำแหน่ง
+    const fmtPct = n => isFinite(n) ? Number(n).toFixed(2) : '0.00';
+
+    // ฟังก์ชันโหลดข้อมูลใบเสนอราคาจาก URL hash หรือ localStorage
+    function loadPayload() {
+      if (location.hash.startsWith('#data=')) {
+        try {
+            return JSON.parse(atob(decodeURIComponent(location.hash.slice(6))));
+        } catch (e) {
+            console.error("Error decoding URL hash:", e);
+        }
+      }
+      try { return JSON.parse(localStorage.getItem('quotationData')); } catch (e) {console.error("Error parsing localStorage data:", e);}
+      return null;
+    }
+
+    // เมื่อโหลดเอกสารเสร็จสิ้น ให้เติมข้อมูลลงในใบเสนอราคา
+    document.addEventListener('DOMContentLoaded', () => {
+      const d = loadPayload();
+      if (!d) return alert('ไม่พบข้อมูลใบเสนอราคา');
+
+      // กำหนดค่าข้อมูลรถยนต์
+      document.getElementById('q_carInfo').textContent = d.carInfo || '-';
+      document.getElementById('q_carPrice').textContent = fmt(d.carPrice) + ' บาท';
+      document.getElementById('q_discount').textContent = fmt(d.discount) + ' บาท';
+      document.getElementById('q_option').textContent = fmt(d.option) + ' บาท';
+      document.getElementById('q_totalAmount').textContent = fmt(d.totalAmount) + ' บาท';
+
+      // กำหนดค่าเงื่อนไขการเช่าซื้อ
+      document.getElementById('q_downAmount_condition').textContent = fmt(d.downAmount) + ' บาท';
+      document.getElementById('q_downPercent').textContent = fmtPct(d.downPercent) + '%';
+      document.getElementById('q_financeAmt').textContent = fmt(d.financeAmt) + ' บาท';
+      document.getElementById('q_interestRate').textContent = fmtPct(d.interestRate) + '%';
+      document.getElementById('q_termYears').textContent = (d.termYears || 0) + ' ปี';
+      document.getElementById('q_termMonths').textContent = ((d.termYears || 0) * 12) + ' งวด';
+
+      // กำหนดค่าสรุปการชำระ
+      document.getElementById('q_downAmount_summary').textContent = fmt(d.downAmount) + ' บาท';
+      document.getElementById('q_leaseInVat').textContent = fmt(d.leaseInVat) + ' บาท';
+      
+      // กำหนดวันที่ออกใบเสนอราคาปัจจุบัน
+      document.getElementById('currentDate').textContent = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+    });
+
+    // ฟังก์ชันสำหรับ Export ใบเสนอราคาเป็น PDF
+    async function exportQuotationAsPdf() {
+      const box = document.querySelector('.quotation-container');
+      const btn = document.querySelector('.export-button-container');
+      btn.style.display = 'none'; // ซ่อนปุ่มก่อนจับภาพ
+
+      try {
+        const canvas = await html2canvas(box, { 
+          scale: 2, // เพิ่มสเกลเพื่อเพิ่มความคมชัด
+          useCORS: true,
+          windowWidth: document.querySelector('.quotation-container').scrollWidth, // จับภาพความกว้างทั้งหมด
+          windowHeight: document.querySelector('.quotation-container').scrollHeight // จับภาพความสูงทั้งหมด
+        });
+        const img = canvas.toDataURL('image/jpeg', 0.7); // ใช้ JPEG และกำหนดคุณภาพ 0.7 เพื่อลดขนาดไฟล์
+        
+        // ขนาด A4 ในหน่วยมิลลิเมตร (210 มม. x 297 มม.)
+        const pdfW = 210; 
+        const pdfH = 297; 
+
+        // คำนวณขนาดรูปภาพให้พอดีกับ PDF โดยรักษาสัดส่วน
+        const imgCanvasWidth = canvas.width;
+        const imgCanvasHeight = canvas.height;
+
+        let imgPdfWidth = pdfW - 20; // 10 มม. ระยะขอบแต่ละด้าน (รวม 20 มม. สำหรับซ้ายขวา)
+        let imgPdfHeight = (imgCanvasHeight * imgPdfWidth) / imgCanvasWidth;
+
+        // หากรูปภาพสูงเกินไป ให้ย่อขนาดลงเพื่อให้พอดีกับความสูงของ PDF พร้อมระยะขอบ
+        if (imgPdfHeight > pdfH - 20) { // 10 มม. ระยะขอบด้านบน/ล่าง (รวม 20 มม. สำหรับบนล่าง)
+            imgPdfHeight = pdfH - 20;
+            imgPdfWidth = (imgCanvasWidth * imgPdfHeight) / imgCanvasHeight;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+
+        // กำหนดตำแหน่ง X และ Y เพื่อให้รูปภาพอยู่กึ่งกลางหน้า
+        const xPos = (pdfW - imgPdfWidth) / 2;
+        const yPos = (pdfH - imgPdfHeight) / 2;
+
+        pdf.addImage(img, 'JPEG', xPos, yPos, imgPdfWidth, imgPdfHeight); // ใช้ 'JPEG'
+        pdf.save("ใบเสนอราคา_ORIX.pdf"); // ตั้งชื่อไฟล์ที่สื่อความหมาย
+      } catch (err) {
+        alert("การ Export PDF ล้มเหลว: " + err.message);
+      } finally {
+        btn.style.display = 'block'; // แสดงปุ่มอีกครั้ง
+      }
+    }
+  </script>
+</body>
+</html>

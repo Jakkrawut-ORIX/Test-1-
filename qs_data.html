@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ข้อมูลสำหรับ QS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.3; /* ลดระยะห่างระหว่างบรรทัด */
+            font-size: 0.9em;
+        }
+        .container {
+            max-width: 600px;
+            margin: 10px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e6eb;
+        }
+        h1 {
+            color: #003366;
+            text-align: center;
+            margin-bottom: 15px; /* ลด margin-bottom */
+            margin-top: 15px;    /* ลด margin-top (ถ้ามีผล) */
+            font-size: 2em;
+            font-weight: 600;
+        }
+        h2 {
+            color: #003366;
+            margin-top: 18px; /* ลด margin-top */
+            margin-bottom: 8px; /* ลด margin-bottom */
+            font-size: 1.5em;
+            border-bottom: 1px solid #003366;
+            padding-bottom: 4px; /* ลด padding-bottom */
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 3px; /* ลด space ระหว่าง rows ให้กระชับขึ้นอีก */
+            margin-bottom: 8px; /* ลด margin-bottom */
+        }
+        td {
+            padding: 5px 0; /* ลด padding */
+            vertical-align: middle;
+            font-size: 0.95em;
+            border-bottom: 1px dashed #cfd8dc;
+        }
+        td:first-child {
+            font-weight: 600;
+            width: 40%;
+            color: #555;
+        }
+        td:last-child {
+            text-align: right;
+            font-weight: bold;
+            color: #003366;
+        }
+        .note {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin-top: 18px; /* ลด margin-top */
+            border-radius: 8px;
+            color: #856404;
+            font-size: 0.85em;
+        }
+        .note ul {
+            margin-bottom: 0;
+            padding-left: 15px;
+        }
+        .note li {
+            margin-bottom: 2px; /* ลด margin-bottom */
+        }
+        .back-button-container {
+            text-align: center;
+            margin-top: 18px; /* ลด margin-top */
+        }
+        .back-button {
+            padding: 9px 18px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+
+        /* --- Responsive Adjustments for Mobile (768px and below) --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+                font-size: 0.85em;
+            }
+            .container {
+                margin: 5px auto;
+                padding: 15px;
+            }
+            h1 {
+                font-size: 1.6em;
+                margin-bottom: 12px;
+                margin-top: 12px; /* ลด margin-top */
+            }
+            h2 {
+                font-size: 1.2em;
+                margin-top: 15px;
+                margin-bottom: 7px; /* ลด margin-bottom */
+            }
+            table {
+                margin-bottom: 8px;
+                border-spacing: 0 2px;
+            }
+            td {
+                padding: 4px 0;
+                font-size: 0.9em;
+            }
+            td:first-child {
+                width: 45%;
+            }
+            td:last-child {
+                font-size: 0.9em;
+            }
+            .note {
+                font-size: 0.8em;
+                padding: 8px;
+                margin-top: 15px; /* ลด margin-top */
+            }
+            .back-button {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+        }
+
+        /* --- Further Optimization for smaller phones (e.g., iPhone SE, older Androids) --- */
+        @media (max-width: 480px) {
+            body {
+                font-size: 0.8em;
+            }
+            .container {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.4em;
+            }
+            h2 {
+                font-size: 1.1em;
+            }
+            td {
+                font-size: 0.85em;
+                padding: 3px 0;
+            }
+            td:first-child {
+                width: 45%;
+            }
+            td:last-child {
+                font-size: 0.85em;
+            }
+            .note {
+                font-size: 0.75em;
+                padding: 6px;
+            }
+            .back-button {
+                font-size: 0.85em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ข้อมูลสำหรับ QS</h1>
+
+    <h2>ข้อมูลเบื้องต้น</h2>
+    <table>
+        <tr><td>ข้อมูลรถ</td><td id="displayCarInfo"></td></tr>
+        <tr><td>ราคารถ</td><td id="displayCarPrice"></td></tr>
+        <tr><td>ส่วนลด</td><td id="displayDiscount"></td></tr>
+        <tr><td>Option</td><td id="displayOption"></td></tr>
+        <tr><td>ราคาสุทธิ</td><td id="displayTotalAmount"></td></tr>
+    </table>
+
+    <h2>ข้อมูลหลัก (สำหรับ QS)</h2>
+    <table>
+        <tr><td>QS Extra Cost</td><td id="displayQsExtraCost"></td></tr>
+        <tr><td>จำนวนปี</td><td id="displayQsTermYears"></td></tr>
+        <tr><td>ค่างวด (Ex VAT)</td><td id="displayLeaseExVat"></td></tr>
+    </table>
+
+    <h2>ข้อมูลสำหรับใบ Down</h2>
+    <table>
+        <tr><td>เงินดาวน์</td><td id="displayDownAmount"></td></tr>
+        <tr><td>เงินดาวน์คิดเป็น %</td><td id="displayDownPercent"></td></tr>
+        <tr><td>TR (Effective %)</td><td id="displayTrRateEffective"></td></tr>
+    </table>
+
+    <h2>ข้อมูลสำหรับใบ Deposit</h2>
+    <table>
+        <tr><td>Deposit</td><td id="displayDeposit"></td></tr>
+        <tr><td>RV</td><td id="displayRV"></td></tr>
+        <tr><td>TR Dep</td><td id="displayTrDep"></td></tr>
+    </table>
+
+    <div class="note">
+        <strong>ข้อควรทราบ:</strong>
+        <ul>
+            <li>**ตัวเลขค่างวดไม่ลงตัว:** ลอง **ลด TR** และ **ปรับ Extra Cost ขึ้นเล็กน้อย** เพื่อให้ค่างวดลงตัว</li>
+            <li>**ใบ Deposit บันทึกไม่ได้:** ตรวจสอบค่า **RV** ว่าน้อยกว่า **Purchase option** หรือไม่</li>
+        </ul>
+    </div>
+
+    <div class="back-button-container">
+        <button class="back-button" onclick="window.close()">ปิดหน้านี้</button>
+    </div>
+
+    <script>
+        function format(n, decimals = 2) {
+            if (isNaN(n) || n === null) return "0.00";
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(parseFloat(n));
+        }
+
+        function format4(n) {
+            if (isNaN(n) || n === null) return "0.0000";
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 4,
+                maximumFractionDigits: 4
+            }).format(parseFloat(n));
+        }
+
+        window.onload = () => {
+            const data = JSON.parse(localStorage.getItem('qsData'));
+
+            if (data) {
+                // Display Basic Info
+                document.getElementById('displayCarInfo').innerText = data.carInfo || '-';
+                document.getElementById('displayCarPrice').innerText = format(data.carPrice);
+                document.getElementById('displayDiscount').innerText = format(data.discount);
+                document.getElementById('displayOption').innerText = format(data.option);
+                document.getElementById('displayTotalAmount').innerText = format(data.totalAmount);
+
+                // Display Core QS Info
+                document.getElementById('displayQsExtraCost').innerText = format(data.qsExtraCost);
+                document.getElementById('displayQsTermYears').innerText = data.termYears || '0';
+                document.getElementById('displayLeaseExVat').innerText = format(data.leaseExVat);
+
+                // Display "ข้อมูลสำหรับใบ Down"
+                document.getElementById('displayDownAmount').innerText = format(data.downAmount);
+                document.getElementById('displayDownPercent').innerText = isNaN(data.qsDownPercent) ? '-' : format4(data.qsDownPercent) + '%';
+                document.getElementById('displayTrRateEffective').innerText = isNaN(data.trRateEffective) ? 'ไม่สามารถคำนวณ' : format4(data.trRateEffective);
+
+                // Display "ข้อมูลสำหรับใบ Deposit"
+                document.getElementById('displayDeposit').innerText = format(data.deposit, 4);
+                document.getElementById('displayRV').innerText = isNaN(data.rv) ? '-' : format4(data.rv) + '%';
+                document.getElementById('displayTrDep').innerText = isNaN(data.trDep) ? 'ไม่สามารถคำนวณ' : format4(data.trDep);
+
+            } else {
+                document.body.innerHTML = "<div class='container'><h1>ไม่พบข้อมูลสำหรับ QS</h1><p style='text-align:center;'>กรุณากลับไปที่หน้าคำนวณและกดปุ่ม 'ส่งข้อมูล ทำ QS' อีกครั้ง</p><div class='back-button-container'><button class='back-button' onclick='window.close()'>ปิดหน้านี้</button></div></div>";
+            }
+        };
+    </script>
+</body>
+</html>
