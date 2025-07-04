@@ -362,7 +362,10 @@
       <tr><td class="label">เงินดาวน์:</td><td class="value highlight-value" id="q_downAmount_condition"></td></tr>
       <tr><td class="label">เงินดาวน์คิดเป็น:</td><td class="value" id="q_downPercent"></td></tr>
       <tr><td class="label">ยอดจัด:</td><td class="value highlight-value" id="q_financeAmt"></td></tr>
-      <tr><td class="label">อัตราดอกเบี้ย:</td><td class="value" id="q_interestRate"></td></tr>
+      <tr>
+        <td class="label">อัตราดอกเบี้ย (<span id="q_rateTypeDisplay"></span>):</td>
+        <td class="value" id="q_rateValueDisplay"></td>
+      </tr>
       <tr><td class="label">จำนวนปี:</td><td class="value" id="q_termYears"></td></tr>
       <tr><td class="label">จำนวนงวด:</td><td class="value" id="q_termMonths"></td></tr>
     </table>
@@ -403,12 +406,14 @@
     const fmt = n => isFinite(n) ? Number(n).toLocaleString('en-US', {minimumFractionDigits:2}) : '0.00';
     // ฟังก์ชันช่วยจัดรูปแบบเปอร์เซ็นต์ให้มีทศนิยม 2 ตำแหน่ง
     const fmtPct = n => isFinite(n) ? Number(n).toFixed(2) : '0.00';
+    // ฟังก์ชันช่วยจัดรูปแบบเปอร์เซ็นต์ให้มีทศนิยม 4 ตำแหน่ง (สำหรับ Effective Rate)
+    const fmtPct4 = n => isFinite(n) ? Number(n).toFixed(4) : '0.0000';
 
     // ฟังก์ชันโหลดข้อมูลใบเสนอราคาจาก URL hash หรือ localStorage
     function loadPayload() {
       if (location.hash.startsWith('#data=')) {
         try {
-            return JSON.parse(atob(decodeURIComponent(location.hash.slice(6))));
+            return JSON.parse(atob(decodeURIComponent(location.hash.slice(6)));
         } catch (e) {
             console.error("Error decoding URL hash:", e);
         }
@@ -433,7 +438,24 @@
       document.getElementById('q_downAmount_condition').textContent = fmt(d.downAmount) + ' บาท';
       document.getElementById('q_downPercent').textContent = fmtPct(d.downPercent) + '%';
       document.getElementById('q_financeAmt').textContent = fmt(d.financeAmt) + ' บาท';
-      document.getElementById('q_interestRate').textContent = fmtPct(d.interestRate) + '%';
+      
+      // *** ส่วนที่เพิ่ม/แก้ไขเพื่อแสดงอัตราดอกเบี้ยตามตัวเลือก ***
+      const rateTypeDisplay = document.getElementById('q_rateTypeDisplay');
+      const rateValueDisplay = document.getElementById('q_rateValueDisplay');
+
+      if (d.rateType === 'flat') {
+          rateTypeDisplay.textContent = 'Flat Rate';
+          rateValueDisplay.textContent = fmtPct(d.flatRate) + '%'; // Flat rate มักจะแสดง 2 ตำแหน่ง
+      } else if (d.rateType === 'effective') {
+          rateTypeDisplay.textContent = 'Effective Rate';
+          rateValueDisplay.textContent = fmtPct4(d.effectiveRate) + '%'; // Effective rate มักจะแสดง 4 ตำแหน่ง
+      } else {
+          // กรณีไม่ระบุ rateType หรือค่าผิดพลาด
+          rateTypeDisplay.textContent = 'ไม่ระบุ';
+          rateValueDisplay.textContent = '-';
+      }
+      // *** สิ้นสุดส่วนที่เพิ่ม/แก้ไข ***
+
       document.getElementById('q_termYears').textContent = (d.termYears || 0) + ' ปี';
       document.getElementById('q_termMonths').textContent = ((d.termYears || 0) * 12) + ' งวด';
 
