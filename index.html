@@ -796,8 +796,10 @@ function generateQuotation() {
         downAmount: uncomma(document.getElementById('downAmount').value),
         downPercent: parseFloat(document.getElementById('downPercentDisplay').innerText.replace(/[()%]/g, '')),
         
-        flatRate: uncomma(document.getElementById('flatRate').value), // Added flatRate
-        effectiveRate: uncomma(document.getElementById('effectiveRate').value), // Added effectiveRate
+        // เพิ่ม rateType ที่ถูกเลือกจาก Dropdown
+        rateType: document.getElementById('rateType').value, // <-- เพิ่มบรรทัดนี้
+        flatRate: uncomma(document.getElementById('flatRate').value),
+        effectiveRate: uncomma(document.getElementById('effectiveRate').value),
         termYears: parseInt(document.getElementById('termYears').value) || 0,
         
         comBase: document.getElementById('comBase').value,
@@ -828,9 +830,8 @@ function generateQuotation() {
         qsTrDep: parseFloat(document.getElementById('qsTrDep').value.replace('ไม่สามารถคำนวณ', 'NaN')),
     };
 
-    // This quotationData should go to a general quotation display, e.g., 'quotation.html'
     localStorage.setItem('quotationData', JSON.stringify(data));
-    window.open('quotation.html', '_blank'); // Assuming you have a general quotation.html
+    window.open('quotation.html', '_blank');
 }
 
 
