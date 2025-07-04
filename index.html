@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>Lease Calculator</title>
+  <title>เครื่องคำนวณ Financial Lease</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
   <style>
@@ -138,6 +138,55 @@
       font-size: 1.0em; /* Slightly reduced input font size */
     }
 
+    /* Radio button styles (not used for rateType anymore, but kept for other radio buttons if any) */
+    .radio-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        width: 100%;
+    }
+
+    .radio-group label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        font-weight: normal;
+        color: var(--orix-dark-grey);
+        white-space: nowrap;
+    }
+
+    .radio-group input[type="radio"] {
+        margin-right: 5px;
+        appearance: none;
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--orix-logo-blue);
+        border-radius: 50%;
+        outline: none;
+        cursor: pointer;
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .radio-group input[type="radio"]:checked {
+        background-color: var(--orix-logo-blue);
+        border-color: var(--orix-logo-blue);
+    }
+
+    .radio-group input[type="radio"]:checked::before {
+        content: '';
+        display: block;
+        width: 8px;
+        height: 8px;
+        background: var(--orix-white);
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
     .button-group {
         display: flex;
         flex-wrap: wrap;
@@ -195,7 +244,7 @@
         background: linear-gradient(145deg, #FF6672, #E65A66);
     }
     .button-group button:nth-of-type(4):hover {
-        background: linear<gradient(145deg, #E65A66, #CC4F59);
+        background: linear-gradient(145deg, #E65A66, #CC4F59);
         transform: translateY(-2px);
         box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
     }
@@ -264,7 +313,7 @@
         width: 60%; /* Allocate 60% width to the value/input field */
         box-sizing: border-box;
       }
-
+      
       td.value input:not([readonly]),
       td.value select,
       td.value input[readonly] {
@@ -288,13 +337,15 @@
         padding: 12px;
         font-size: 1em;
       }
+
+      /* Radio group not relevant here anymore for rateType */
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Financial Lease Calculator</h1>
+  <h1>เครื่องคำนวณ Financial Lease</h1>
 
   <h2>ข้อมูลเบื้องต้น</h2>
   <table>
@@ -324,15 +375,16 @@
   <h2>ดอกเบี้ยและระยะเวลา</h2>
   <table>
     <tr>
-      <td class="label">ประเภทดอกเบี้ย</td>
+      <td class="label">ประเภทอัตราดอกเบี้ย</td>
       <td class="value">
-        <select id="rateType" onchange="calculate()">
+        <select id="rateType" onchange="toggleRateInput(); calculate();">
           <option value="flat">Flat Rate</option>
           <option value="effective">Effective Rate</option>
         </select>
       </td>
     </tr>
-    <tr><td class="label">อัตราดอกเบี้ย (%)</td><td class="value"><input id="interestRate" type="text" value="0.00"></td></tr>
+    <tr><td class="label">Flat Rate (%)</td><td class="value"><input id="flatRate" type="text" value="0.00"></td></tr>
+    <tr><td class="label">Effective Rate (%)</td><td class="value"><input id="effectiveRate" type="text" value="0.00" readonly></td></tr>
     <tr><td class="label">จำนวนปี</td><td class="value"><input id="termYears" type="number" step="1" value="0"></td></tr>
   </table>
 
@@ -355,7 +407,6 @@
   <h2>ผลลัพธ์</h2>
   <table>
     <tr><td class="label">ยอดจัด</td><td class="value"><input id="financeAmt" readonly></td></tr>
-    <tr><td class="label">อัตราดอกเบี้ย Flat</td><td class="value"><input id="calculatedFlatRate" readonly></td></tr>
     <tr><td class="label">ดอกเบี้ยต่อปี</td><td class="value"><input id="intPA" readonly></td></tr>
     <tr><td class="label">ดอกเบี้ยรวม</td><td class="value"><input id="intTotal" readonly></td></tr>
     <tr><td class="label">ยอดจัดรวม</td><td class="value"><input id="financeTotalWithInterest" readonly></td></tr>
@@ -382,7 +433,7 @@
   <div class="button-group">
     <button onclick="calculate()">คำนวณ</button>
     <button onclick="calculateDownForTargetLease(36000)">ค่างวด 36,000</button>
-    <button onclick="generateQuotation()">ใบเสนอราคา</button>
+    <button onclick="generateQuotation()">สร้างใบเสนอราคา</button>
     <button onclick="sendToQsData()">ส่งข้อมูล QS</button>
   </div>
 </div>
@@ -390,7 +441,8 @@
 <script>
 // Helper functions for number formatting
 function format(n, decimals = 2) {
-  if (isNaN(n) || n === null || n === undefined) return "0.00";
+  if (isNaN(n) || n === null) return "0.00";
+  // Use Intl.NumberFormat for robust formatting with commas
   return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals
@@ -402,7 +454,7 @@ function formatNoDecimal(n) {
 }
 
 function format4(n) {
-  if (isNaN(n) || n === null || n === undefined) return "0.0000";
+  if (isNaN(n) || n === null) return "0.0000";
   return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 4,
     maximumFractionDigits: 4
@@ -410,38 +462,50 @@ function format4(n) {
 }
 
 function uncomma(s) {
+  // Handles both comma-formatted and non-formatted numbers, returns 0 if invalid
   const cleaned = String(s).replace(/,/g, '');
   const num = parseFloat(cleaned);
   return isNaN(num) ? 0 : num;
 }
 
-// IRR Calculation: Solves for the interest rate given cash flows
-// nper: Number of periods
-// pmt: Payment made each period (negative for outflow)
-// pv: Present value (negative for outflow)
-// fv: Future value (positive for inflow)
-// type: When payments are made (0=end of period, 1=beginning of period)
+// PMT function: Calculates the payment for a loan based on constant payments and a constant interest rate.
+// rate: The interest rate per period (e.g., monthly interest rate)
+// nper: The total number of payments (periods)
+// pv: The present value, or the principal amount of the loan
+// fv: The future value, or a cash balance you want to attain after the last payment is made (optional, defaults to 0)
+// type: When payments are due: 0 = end of period, 1 = beginning of period (optional, defaults to 0)
+function pmt(rate, nper, pv, fv = 0, type = 0) {
+    if (rate === 0) {
+        return -(pv + fv) / nper;
+    }
+
+    const pvif = Math.pow(1 + rate, nper);
+    let pmt = rate / (pvif - 1) * -(pv * pvif + fv);
+    if (type === 1) {
+        pmt /= (1 + rate);
+    }
+    return pmt;
+}
+
+// Function to calculate IRR (Effective Interest Rate per period)
 function calculateIRR(nper, pmt, pv, fv = 0, type = 0) {
-  if (pmt === 0 && pv === 0 && fv === 0) return NaN;
+  if (pmt === 0 && pv === 0) return NaN;
   if (nper <= 0) return NaN;
 
   let guess = 0.05 / 12; // Initial guess for monthly rate
   let rate = guess;
   const maxIter = 500;
-  const tol = 1e-7; // Tolerance for convergence
+  const tol = 1e-7;
 
   for (let i = 0; i < maxIter; i++) {
     let f = pv;
     let df = 0;
 
-    // Sum of present values of payments
     for (let t = 1; t <= nper; t++) {
       const discountFactor = Math.pow(1 + rate, t - (type === 1 ? 1 : 0));
       f += pmt / discountFactor;
       df += -(t - (type === 1 ? 1 : 0)) * pmt / Math.pow(1 + rate, t + 1 - (type === 1 ? 1 : 0));
     }
-    
-    // Add present value of future value (RV)
     f += fv / Math.pow(1 + rate, nper);
     df += -nper * fv / Math.pow(1 + rate, nper + 1);
 
@@ -449,14 +513,33 @@ function calculateIRR(nper, pmt, pv, fv = 0, type = 0) {
 
     const newRate = rate - f / df;
     if (Math.abs(newRate - rate) < tol) return newRate;
-    if (isNaN(newRate) || !isFinite(newRate)) return NaN; // Check for invalid rates
+    if (isNaN(newRate) || !isFinite(newRate)) return NaN;
 
     rate = newRate;
   }
-  return NaN; // No convergence
+  return NaN;
 }
 
-// Function to update down payment percentage display
+// Function to toggle readonly state of rate input fields
+function toggleRateInput() {
+    // Get the selected value from the dropdown
+    const rateType = document.getElementById('rateType').value; 
+    const flatRateInput = document.getElementById('flatRate');
+    const effectiveRateInput = document.getElementById('effectiveRate');
+
+    if (rateType === 'flat') {
+        flatRateInput.readOnly = false;
+        flatRateInput.style.backgroundColor = 'var(--input-bg-editable)';
+        effectiveRateInput.readOnly = true;
+        effectiveRateInput.style.backgroundColor = 'var(--input-bg-readonly)';
+    } else { // effective
+        flatRateInput.readOnly = true;
+        flatRateInput.style.backgroundColor = 'var(--input-bg-readonly)';
+        effectiveRateInput.readOnly = false;
+        effectiveRateInput.style.backgroundColor = 'var(--input-bg-editable)';
+    }
+}
+
 function showDownPercent() {
   const total = uncomma(document.getElementById("totalAmount").value);
   const down = uncomma(document.getElementById("downAmount").value);
@@ -465,26 +548,6 @@ function showDownPercent() {
   document.getElementById("qsDownPercent").value = format4(result) + '%';
 }
 
-// Function to update QS Information section
-function updateQsInfo(carInfo, carPrice, discount, option, downAmount, termYears, trRate, trDep, qsExtraCost) {
-    // Dep and RV are fixed at 0 or other predefined values
-    const displayDeposit = 0; // Display Dep as 0 as per request
-    const displayRvPercent = 0; // Display RV as 0% as per request
-
-    document.getElementById('qsCarInfo').value = carInfo;
-    document.getElementById('qsCarPrice').value = format(carPrice);
-    document.getElementById('qsDiscount').value = format(discount);
-    document.getElementById('qsOption').value = format(option);
-    document.getElementById('qsDownAmount').value = format(downAmount);
-    // qsDownPercent is updated by showDownPercent()
-    document.getElementById('qsTrRate').value = isNaN(trRate) ? 'ไม่สามารถคำนวณ' : format4(trRate);
-    document.getElementById('qsTermYears').value = termYears;
-    document.getElementById('qsDeposit').value = format(displayDeposit); // Fixed value for display
-    document.getElementById('qsRV').value = format(displayRvPercent) + '%'; // Fixed value for display
-    document.getElementById('qsTrDep').value = isNaN(trDep) ? 'ไม่สามารถคำนวณ' : format4(trDep);
-}
-
-// Main calculation function
 function calculate() {
   const getVal = id => uncomma(document.getElementById(id).value);
   const getIntVal = id => parseInt(uncomma(document.getElementById(id).value)) || 0;
@@ -507,26 +570,50 @@ function calculate() {
   document.getElementById('downAmount').value = format(down);
 
   const finance = total - down;
-  const originalInterestRateInput = getVal('interestRate'); 
-  const rateType = document.getElementById('rateType').value;
-  let actualFlatRate = 0; 
-  let leaseInVat = 0; 
-  let intTotal = 0; 
-  let commission = 0; 
-  let qsExtraCost = 0; 
-
   const years = getIntVal('termYears');
   const months = years * 12;
 
-  // Dep and RV are hardcoded as 0 for calculation and display as per request
-  const deposit = 0; 
-  const rvPercent = 0; 
-  const residualValue = total * (rvPercent / 100); // This will be 0 if rvPercent is 0
+  // Read value from the dropdown
+  const rateType = document.getElementById('rateType').value; 
+  let flatRate = getVal('flatRate');
+  let effectiveRate = getVal('effectiveRate');
+  
+  let actualMonthlyRate = 0; // This will be the monthly effective rate used in PMT
+  let displayFlatRate = 0;
+  let displayEffectiveRate = 0;
 
-  // Handle zero term years
+  if (rateType === 'flat') {
+      displayFlatRate = flatRate; // User entered flat rate
+      if (months > 0) {
+          // คำนวณค่างวดเบื้องต้นจาก Flat Rate เพื่อหา Effective Rate
+          const totalFlatInterest = finance * (flatRate / 100) * years;
+          const financeTotalWithInterestForFlat = finance + totalFlatInterest;
+          const leaseInVat_temp = Math.ceil(financeTotalWithInterestForFlat / months); // ค่างวดชั่วคราว
+          actualMonthlyRate = calculateIRR(months, leaseInVat_temp, -finance, 0, 0); // คำนวณ Effective Monthly Rate
+          displayEffectiveRate = actualMonthlyRate * 12 * 100; // แปลงเป็น Effective Rate ต่อปี
+      } else {
+          displayEffectiveRate = 0;
+      }
+  } else { // effective rate selected
+      displayEffectiveRate = effectiveRate; // User entered effective rate
+      actualMonthlyRate = effectiveRate / 100 / 12; // แปลง Effective Rate ต่อปี เป็น Effective Rate ต่อเดือน
+      
+      // คำนวณ Flat Rate จาก Effective Rate เพื่อแสดงผล
+      if (months > 0 && actualMonthlyRate !== 0) {
+            const pmtForFlatCalc = pmt(actualMonthlyRate, months, -finance);
+            const totalPayments = pmtForFlatCalc * months;
+            const totalInterestForFlatCalc = totalPayments - finance;
+            displayFlatRate = (totalInterestForFlatCalc / finance / years) * 100;
+      } else {
+          displayFlatRate = 0;
+      }
+  }
+
+  document.getElementById('flatRate').value = format(displayFlatRate);
+  document.getElementById('effectiveRate').value = format4(displayEffectiveRate);
+  
   if (months === 0) {
       document.getElementById('financeAmt').value = format(finance);
-      document.getElementById('calculatedFlatRate').value = format(0);
       document.getElementById('intPA').value = format(0);
       document.getElementById('intTotal').value = format(0);
       document.getElementById('financeTotalWithInterest').value = format(finance);
@@ -541,119 +628,54 @@ function calculate() {
       return;
   }
 
-  const comPercent = getIntVal('comPercent');
-  const extra = getVal('extra');
-  const comBase = document.getElementById('comBase').value;
+  // ใช้ actualMonthlyRate สำหรับการคำนวณ PMT
+  const leaseInVat = Math.ceil(pmt(actualMonthlyRate, months, -finance));
+  const leaseExVat = leaseInVat / 1.07;
 
+  // สำหรับการแสดงผลดอกเบี้ย (intPA, intTotal) ให้ใช้แนวคิดดอกเบี้ยแบบ Simple interest
+  // ถ้าป้อน Flat Rate มา ให้ใช้ค่านั้นสำหรับ intPA, intTotal
+  // ถ้าป้อน Effective Rate มา ให้คำนวณ Flat Rate เทียบเท่าสำหรับการแสดงผล intPA, intTotal
+  let interestRateForDisplay = 0;
   if (rateType === 'flat') {
-      actualFlatRate = originalInterestRateInput;
-      // Flat Rate calculation: Simple Interest based on finance amount
-      intTotal = finance * (actualFlatRate / 100) * years;
-      const financeTotalWithInterest = finance + intTotal;
-      leaseInVat = Math.ceil(financeTotalWithInterest / months); // Total to be paid divided by months
-      
-      // Commission calculation based on chosen base
-      if (comBase === "finance") {
-          commission = Math.ceil(finance * (comPercent / 100));
-      } else { 
-          commission = Math.ceil(intTotal * (comPercent / 100));
-      }
-      qsExtraCost = commission + extra;
-
-  } else { // Effective Rate (User inputs desired TR)
-      const targetTrRate = originalInterestRateInput; 
-
-      let lowLease = 1;
-      // High estimate for lease payment (e.g., 5 times the basic principal per month)
-      let highLease = (finance * 5) / months; 
-      if (highLease < 1000) highLease = 1000000; // Ensure a reasonable upper bound
-
-      let bestLeaseInVatCandidate = 0;
-      let bestCommissionCandidate = 0;
-      let bestQsExtraCostCandidate = 0;
-      let minTrDiff = Infinity;
-      const tolerance = 0.00001; // Tolerance for TR convergence
-
-      // Bisection search for LeaseInVat
-      for (let i = 0; i < 200; i++) { // Max iterations
-          let currentLeaseInVat = Math.round((lowLease + highLease) / 2); 
-          if (currentLeaseInVat <= 0) currentLeaseInVat = 1; // Prevent zero or negative payments
-
-          // Temporary interest total based on current lease guess
-          const tempIntTotal = (currentLeaseInVat * months) - finance; 
-          
-          let tempCommission = 0;
-          if (comBase === "finance") {
-              tempCommission = Math.ceil(finance * (comPercent / 100));
-          } else { 
-              tempCommission = Math.ceil(tempIntTotal * (comPercent / 100));
-          }
-          const tempExtraCost = tempCommission + extra;
-
-          // PV for IRR: -(Finance amount + (Commission * 1.07) + (Extra * 1.07))
-          // Commission and Extra are cash outflows, so they are added to the principal to be financed.
-          const pvForTrCalculation = -(finance + (tempCommission * 1.07) + (extra * 1.07)); 
-          // FV is 0 as per the requirement (no RV)
-          let calculatedTr = calculateIRR(months, -currentLeaseInVat, pvForTrCalculation, 0, 0) * 12 * 100;
-          
-          const diff = Math.abs(calculatedTr - targetTrRate);
-
-          // Store the best candidate found so far
-          if (diff < minTrDiff) {
-              minTrDiff = diff;
-              bestLeaseInVatCandidate = currentLeaseInVat;
-              bestCommissionCandidate = tempCommission;
-              bestQsExtraCostCandidate = tempExtraCost;
-          }
-
-          // If close enough, we can stop
-          if (diff < tolerance) { 
-              break;
-          }
-
-          // Adjust search range
-          if (calculatedTr > targetTrRate) {
-              highLease = currentLeaseInVat; 
-          } else {
-              lowLease = currentLeaseInVat; 
-          }
-      }
-      
-      leaseInVat = bestLeaseInVatCandidate;
-      commission = bestCommissionCandidate;
-      qsExtraCost = bestQsExtraCostCandidate;
-
-      // Recalculate intTotal and actualFlatRate using the found leaseInVat
-      intTotal = (leaseInVat * months) - finance;
-      actualFlatRate = (finance > 0 && years > 0) ? (intTotal / finance / years) * 100 : 0;
-
-      if (isNaN(actualFlatRate) || !isFinite(actualFlatRate)) {
-        actualFlatRate = 0;
+      interestRateForDisplay = flatRate;
+  } else {
+      // หาก Effective Rate เป็นค่าที่ป้อนหลัก ให้คำนวณดอกเบี้ยรวมแบบ Simple interest สำหรับการแสดงผล
+      const totalPaymentsBasedOnEffective = leaseInVat * months;
+      const totalInterestBasedOnEffective = totalPaymentsBasedOnEffective - finance;
+      if (finance > 0 && years > 0) {
+        interestRateForDisplay = (totalInterestBasedOnEffective / finance / years) * 100;
+      } else {
+        interestRateForDisplay = 0;
       }
   }
 
-  // Final display calculations
-  const intPA = finance * (actualFlatRate / 100);
-  const financeTotalWithInterestFinal = finance + intTotal;
-  const leaseExVat = leaseInVat / 1.07;
+  const intPA = finance * (interestRateForDisplay / 100);
+  const intTotal = intPA * years;
 
-  // Recalculate TR (Effective %) and TR Dep with final commission/qsExtraCost
-  // PV for IRR for TR calculation
+  const comBase = document.getElementById('comBase').value;
+  const comPercent = getIntVal('comPercent');
+  const extra = getVal('extra');
+  const comBaseVal = comBase === "finance" ? finance : intTotal;
+  const commission = Math.ceil(comBaseVal * (comPercent / 100));
+  const qsExtraCost = commission + extra;
+
+  const financeTotalWithInterest = finance + intTotal; // ตรงนี้ยังคงคำนวณแบบ Simple interest เพื่อแสดงผล
+
+  // TR Calculation (Effective %) - จะเป็น 'effectiveRate' โดยตรง หรือคำนวณหากป้อน Flat Rate มา
   const pvForIRR = -(finance + (commission * 1.07) + (extra * 1.07));
-  const tr = calculateIRR(months, -leaseInVat, pvForIRR, 0, 0) * 12 * 100; // FV is 0
+  const tr = calculateIRR(months, leaseInVat, pvForIRR, 0, 0) * 12 * 100;
 
-  // TR Dep: Uses Total Amount as PV and Down Payment as FV (Cash Inflow at start)
-  // PV for TR Dep: -(Total Car Amount + (Commission * 1.07) + (Extra * 1.07))
+  // TR Dep Calculation (ปรับปรุงตามสูตรใหม่ล่าสุด)
+  // TR Dep = RATE((จำนวนปี*12),ค่างวดInVAT,((-total)+(-ค่าคอมที่คำนวณ*1.07)+(-extra*1.07)),เงินดาวน์,0)*12
   const pvForTRDep = -(total + (commission * 1.07) + (extra * 1.07));
-  const trDep = calculateIRR(months, -leaseInVat, pvForTRDep, down, 0) * 12 * 100; // FV is down payment
+  const trDep = calculateIRR(months, leaseInVat, pvForTRDep, down, 0) * 12 * 100;
+
 
   document.getElementById('financeAmt').value = format(finance);
-  document.getElementById('calculatedFlatRate').value = format4(actualFlatRate); 
   document.getElementById('intPA').value = format(intPA);
   document.getElementById('intTotal').value = format(intTotal);
-  document.getElementById('financeTotalWithInterest').value = format(financeTotalWithInterestFinal);
   document.getElementById('calculatedCommission').value = format(commission);
-  document.getElementById('qsExtra').value = format(qsExtraCost);
+  document.getElementById('qsExtra').value = format(qsExtraCost); 
   document.getElementById('leaseInVat').value = format(leaseInVat);
   document.getElementById('leaseExVat').value = format(leaseExVat);
   document.getElementById('trRate').value = isNaN(tr) ? 'ไม่สามารถคำนวณ' : format4(tr);
@@ -663,161 +685,108 @@ function calculate() {
   showDownPercent();
 }
 
-// *** Function to calculate down payment for a target lease amount ***
-// This function performs a bisection search to find the down payment
-// that results in the targetLease payment.
-function calculateDownForTargetLease(targetLease) {
-    const getVal = id => uncomma(document.getElementById(id).value);
-    const getIntVal = id => parseInt(uncomma(document.getElementById(id).value)) || 0;
-
-    const car = getVal('carPrice');
-    const discount = getVal('discount');
-    const option = getVal('option');
-    const total = car - discount + option;
-    document.getElementById('totalAmount').value = format(total);
-
-    const originalInterestRateInput = getVal('interestRate'); 
-    const years = getIntVal('termYears');
-    const months = years * 12;
-
-    const rateType = document.getElementById('rateType').value;
-    const comBase = document.getElementById('comBase').value;     
-    const comPercent = getIntVal('comPercent');
-    const extra = getVal('extra');
-
-    // Dep and RV are hardcoded as 0 for this specific calculation as well
-    const deposit = 0; 
-    const rvPercent = 0; 
-    const residualValue = 0; // Will be 0
-
-    if (months === 0 || originalInterestRateInput === 0 || total <= 0) {
-        alert("กรุณาระบุราคารถ, จำนวนปี และอัตราดอกเบี้ยให้ถูกต้อง (มากกว่า 0) ก่อนคำนวณเงินดาวน์สำหรับค่างวดเป้าหมาย.");
-        return;
-    }
-
-    let lowDown = 0;
-    let highDown = total; // Max possible down payment is the total car price
-    let bestDown = 0;
-    let minLeaseDiff = Infinity; // Track the smallest difference from the target lease
-
-    const maxIter = 200; // Max iterations for bisection search
-    const tolerance = 0.5; // Acceptable difference for the lease payment (e.g., +/- 0.5 Baht)
-
-    for (let i = 0; i < maxIter; i++) {
-        const currentDown = Math.round((lowDown + highDown) / 2); // Midpoint of the current search range
-        
-        // Ensure down payment is within valid bounds
-        if (currentDown < 0) {
-            lowDown = 0; // If somehow negative, reset low bound
-            continue;
-        }
-        if (currentDown > total) {
-            highDown = total; // If somehow exceeds total, reset high bound
-            continue;
-        }
-
-        const finance = total - currentDown; // Calculate finance amount for current down payment
-
-        let currentLeaseInVat = 0;
-        let currentCommission = 0;
-        let intTotalForCommissionCalc = 0; 
-
-        if (rateType === 'flat') {
-            // Flat Rate: Calculate interest and lease payment directly
-            intTotalForCommissionCalc = finance * (originalInterestRateInput / 100) * years;
-            currentLeaseInVat = Math.ceil((finance + intTotalForCommissionCalc) / months); 
-            
-            // Calculate commission based on the determined interest total or finance amount
-            if (comBase === "finance") {
-                currentCommission = Math.ceil(finance * (comPercent / 100));
-            } else {
-                currentCommission = Math.ceil(intTotalForCommissionCalc * (comPercent / 100));
-            }
-
-        } else { // Effective Rate: Use inner bisection search to find lease for this down payment
-            const targetTrRateForThisIteration = originalInterestRateInput;
-            
-            let innerLowLease = 1;
-            let innerHighLease = (total * 5) / months; 
-            if (innerHighLease < 1000) innerHighLease = 1000000;
-
-            let bestInnerLease = 0;
-            let minInnerTrDiff = Infinity;
-            const innerTolerance = 0.0001; 
-
-            for (let j = 0; j < 100; j++) {
-                let tempLeaseCandidate = Math.round((innerLowLease + innerHighLease) / 2);
-                if (tempLeaseCandidate <= 0) tempLeaseCandidate = 1;
-
-                const tempIntTotal = (tempLeaseCandidate * months) - finance; 
-                
-                let tempInnerCommission = 0;
-                if (comBase === "finance") {
-                    tempInnerCommission = Math.ceil(finance * (comPercent / 100));
-                } else {
-                    tempInnerCommission = Math.ceil(tempIntTotal * (comPercent / 100));
-                }
-                
-                // PV for IRR: -(Finance + (tempCommission * 1.07) + (extra * 1.07))
-                const pvForInnerTr = -(finance + (tempInnerCommission * 1.07) + (extra * 1.07));
-                let calculatedInnerTr = calculateIRR(months, -tempLeaseCandidate, pvForInnerTr, 0, 0) * 12 * 100;
-                
-                const innerDiff = Math.abs(calculatedInnerTr - targetTrRateForThisIteration);
-
-                if (innerDiff < minInnerTrDiff) {
-                    minInnerTrDiff = innerDiff;
-                    bestInnerLease = tempLeaseCandidate;
-                    currentCommission = tempInnerCommission; 
-                }
-
-                if (innerDiff < innerTolerance) {
-                    break;
-                }
-
-                if (calculatedInnerTr > targetTrRateForThisIteration) {
-                    innerHighLease = tempLeaseCandidate;
-                } else {
-                    innerLowLease = tempLeaseCandidate;
-                }
-            }
-            currentLeaseInVat = bestInnerLease;
-        }
-
-        // Compare the calculated lease payment with the target lease
-        const diff = Math.abs(currentLeaseInVat - targetLease);
-
-        if (diff < minLeaseDiff) { // If this is the best match so far
-            minLeaseDiff = diff;
-            bestDown = currentDown;
-        }
-
-        if (diff < tolerance) { // If we are within acceptable tolerance
-            break;
-        }
-
-        // Adjust search range for down payment
-        if (currentLeaseInVat > targetLease) {
-            lowDown = currentDown; // If current lease is too high, need to increase down payment
-        } else {
-            highDown = currentDown; // If current lease is too low, can decrease down payment
-        }
-    }
-    
-    // Update UI with the found down payment and recalculate all values
-    document.getElementById('downType').value = 'amount'; // Set down type to amount
-    document.getElementById('downInput').value = formatNoDecimal(bestDown); // Set the found down amount
-    calculate(); // Trigger a full recalculation based on the new down payment
+function updateQsInfo(carInfo, car, discount, option, down, years, tr, trDep, qsExtraCost) {
+    document.getElementById('qsCarInfo').value = carInfo;
+    document.getElementById('qsCarPrice').value = format(car);
+    document.getElementById('qsDiscount').value = format(discount);
+    document.getElementById('qsOption').value = format(option);
+    document.getElementById('qsDownAmount').value = format(down);
+    document.getElementById('qsTrRate').value = isNaN(tr) ? 'ไม่สามารถคำนวณ' : format4(tr);
+    document.getElementById('qsTermYears').value = years;
+    document.getElementById('qsDeposit').value = format(down / 1.07, 4);
+    const totalAmount = uncomma(document.getElementById('totalAmount').value);
+    document.getElementById('qsRV').value = format4(totalAmount > 0 ? (down / totalAmount * 100) : 0) + '%';
+    document.getElementById('qsTrDep').value = isNaN(trDep) ? 'ไม่สามารถคำนวณ' : format4(trDep);
+    document.getElementById('qsExtra').value = format(qsExtraCost);
 }
 
+function calculateDownForTargetLease(targetLease) {
+  const getVal = id => uncomma(document.getElementById(id).value);
+  const getIntVal = id => parseInt(uncomma(document.getElementById(id).value)) || 0;
 
-// Function to generate quotation (for quotation.html)
+  const car = getVal('carPrice');
+  const discount = getVal('discount');
+  const option = getVal('option');
+  const total = car - discount + option;
+  document.getElementById('totalAmount').value = format(total);
+
+  const years = getIntVal('termYears');
+  const months = years * 12;
+
+  // Read value from the dropdown
+  const rateType = document.getElementById('rateType').value; 
+  let rateForCalculation = 0; // นี่คือ Effective Rate รายเดือนที่จะใช้ใน PMT
+
+  if (rateType === 'flat') {
+      const flatRate = getVal('flatRate');
+      // สำหรับการคำนวณค่างวดเป้าหมาย เราต้องหา Effective Rate จาก Flat Rate เพื่อใช้ใน PMT
+      // นี่เป็นการประมาณค่าโดยการหา IRR จากค่างวดที่คำนวณด้วย Flat Rate เบื้องต้น
+      if (months > 0) {
+          const tempTotalFlatInterest = (total - 0) * (flatRate / 100) * years; // สมมติว่าดาวน์ 0 สำหรับการคำนวณชั่วคราว
+          const tempLease = Math.ceil((total + tempTotalFlatInterest) / months);
+          rateForCalculation = calculateIRR(months, tempLease, -total, 0, 0); // ประมาณ Effective Monthly Rate
+      } else {
+          alert("กรุณาระบุจำนวนปีให้มากกว่า 0.");
+          return;
+      }
+
+  } else { // effective rate selected
+      const effectiveRate = getVal('effectiveRate');
+      rateForCalculation = effectiveRate / 100 / 12; // แปลง Effective Rate ต่อปี เป็น Effective Rate ต่อเดือน
+  }
+
+  if (months === 0 || rateForCalculation === 0) {
+      alert("กรุณาระบุจำนวนปีและอัตราดอกเบี้ยให้ถูกต้องก่อนคำนวณเงินดาวน์สำหรับค่างวดเป้าหมาย.");
+      return;
+  }
+  if (total <= 0) {
+      alert("กรุณาระบุราคารถให้ถูกต้อง (มากกว่า 0) เพื่อคำนวณเงินดาวน์.");
+      return;
+  }
+
+  let low = 0;
+  let high = total;
+  let bestDown = 0;
+  let minDiff = Infinity;
+
+  const maxIter = 500;
+
+  for (let i = 0; i < maxIter; i++) {
+    const currentDown = Math.ceil((low + high) / 2); 
+
+    if (currentDown < 0) currentDown = 0;
+    if (currentDown > total) currentDown = total;
+
+    const finance = total - currentDown;
+    const currentLease = Math.ceil(pmt(rateForCalculation, months, -finance));
+
+    const diff = Math.abs(currentLease - targetLease);
+
+    if (diff < minDiff) {
+        minDiff = diff;
+        bestDown = currentDown;
+    }
+
+    if (Math.abs(high - low) < 1 || diff < 0.1) {
+        break;
+    }
+
+    if (currentLease > targetLease) {
+      low = currentDown;
+    } else {
+      high = currentDown;
+    }
+  }
+
+  document.getElementById('downType').value = 'amount';
+  document.getElementById('downInput').value = formatNoDecimal(bestDown);
+  calculate();
+}
+
+// Function to generate the quotation (original purpose)
 function generateQuotation() {
-    calculate(); // Ensure all values are up-to-date
+    calculate(); // Ensure all values are up-to-date on screen
 
-    // Dep and RV values are fixed as 0 for quotation data
-    const depositValue = 0;
-    const rvPercentValue = 0;
-    
     const data = {
         carInfo: document.getElementById('carInfo').value,
         carPrice: uncomma(document.getElementById('carPrice').value),
@@ -827,18 +796,15 @@ function generateQuotation() {
         downAmount: uncomma(document.getElementById('downAmount').value),
         downPercent: parseFloat(document.getElementById('downPercentDisplay').innerText.replace(/[()%]/g, '')),
         
-        rateType: document.getElementById('rateType').value,
-        interestRateInput: uncomma(document.getElementById('interestRate').value),
-        calculatedFlatRate: uncomma(document.getElementById('calculatedFlatRate').value),
+        flatRate: uncomma(document.getElementById('flatRate').value), // Added flatRate
+        effectiveRate: uncomma(document.getElementById('effectiveRate').value), // Added effectiveRate
         termYears: parseInt(document.getElementById('termYears').value) || 0,
-        deposit: depositValue, 
-        rvPercent: rvPercentValue, 
         
         comBase: document.getElementById('comBase').value,
         comPercent: parseInt(document.getElementById('comPercent').value) || 0,
         calculatedCommission: uncomma(document.getElementById('calculatedCommission').value),
         extra: uncomma(document.getElementById('extra').value),
-        qsExtra: uncomma(document.getElementById('qsExtra').value),
+        qsExtra: uncomma(document.getElementById('qsExtra').value), // This is the qsExtraCost
 
         financeAmt: uncomma(document.getElementById('financeAmt').value),
         intPA: uncomma(document.getElementById('intPA').value),
@@ -848,7 +814,7 @@ function generateQuotation() {
         leaseExVat: uncomma(document.getElementById('leaseExVat').value),
         trRate: parseFloat(document.getElementById('trRate').value.replace('ไม่สามารถคำนวณ', 'NaN')),
         
-        // QS Information values
+        // QS Information fields (raw numbers or strings as they appear in the QS table inputs)
         qsCarInfo: document.getElementById('qsCarInfo').value,
         qsCarPrice: uncomma(document.getElementById('qsCarPrice').value),
         qsDiscount: uncomma(document.getElementById('qsDiscount').value),
@@ -857,108 +823,105 @@ function generateQuotation() {
         qsDownPercent: parseFloat(document.getElementById('qsDownPercent').value.replace(/[()%]/g, '')),
         qsTrRate: parseFloat(document.getElementById('qsTrRate').value.replace('ไม่สามารถคำนวณ', 'NaN')),
         qsTermYears: parseInt(document.getElementById('qsTermYears').value) || 0,
-        qsDeposit: depositValue,
-        qsRV: rvPercentValue,
+        qsDeposit: uncomma(document.getElementById('qsDeposit').value),
+        qsRV: parseFloat(document.getElementById('qsRV').value.replace('%', '')),
         qsTrDep: parseFloat(document.getElementById('qsTrDep').value.replace('ไม่สามารถคำนวณ', 'NaN')),
     };
 
+    // This quotationData should go to a general quotation display, e.g., 'quotation.html'
     localStorage.setItem('quotationData', JSON.stringify(data));
-    window.open('quotation.html', '_blank');
+    window.open('quotation.html', '_blank'); // Assuming you have a general quotation.html
 }
 
-// Function to send data to QS (for qs_data.html)
-function sendToQsData() {
-    calculate(); 
 
-    // Dep and RV values are fixed as 0 for QS data
-    const depositValue = 0;
-    const rvPercentValue = 0;
+// New function to send data specifically to qs_data.html
+function sendToQsData() {
+    calculate(); // Ensure all values are up-to-date on screen
 
     const qsExtraCost = uncomma(document.getElementById('qsExtra').value);
     const downAmount = uncomma(document.getElementById('downAmount').value);
     const totalAmount = uncomma(document.getElementById('totalAmount').value);
     const trRateEffective = parseFloat(document.getElementById('trRate').value.replace('ไม่สามารถคำนวณ', 'NaN'));
     const termYears = parseInt(document.getElementById('termYears').value) || 0;
+    const deposit = uncomma(document.getElementById('qsDeposit').value);
+    const rv = parseFloat(document.getElementById('qsRV').value.replace('%', ''));
     const trDep = parseFloat(document.getElementById('qsTrDep').value.replace('ไม่สามารถคำนวณ', 'NaN'));
     const downPercent = parseFloat(document.getElementById('downPercentDisplay').innerText.replace(/[()%]/g, ''));
     const leaseExVat = uncomma(document.getElementById('leaseExVat').value);
 
-
     const dataForQs = {
+        // Basic Info
         carInfo: document.getElementById('carInfo').value,
         carPrice: uncomma(document.getElementById('carPrice').value),
         discount: uncomma(document.getElementById('discount').value),
         option: uncomma(document.getElementById('option').value),
         totalAmount: totalAmount,
+
+        // QS specific values (matching IDs from your qs_data.html)
         qsExtraCost: qsExtraCost,
         downAmount: downAmount,
         qsDownPercent: downPercent,
         trRateEffective: trRateEffective,
         termYears: termYears,
-        deposit: depositValue, 
-        rv: rvPercentValue, 
+        deposit: deposit,
+        rv: rv,
         trDep: trDep,
         leaseExVat: leaseExVat
     };
 
-    localStorage.setItem('qsData', JSON.stringify(dataForQs)); 
+    localStorage.setItem('qsData', JSON.stringify(dataForQs));
     window.open('qs_data.html', '_blank');
 }
 
 
-// Event Listeners for input fields to trigger calculations on blur and format on focus/blur
+// Event Listeners for input fields
 function addInputListeners(id) {
   const el = document.getElementById(id);
 
   if (id === 'carInfo') {
       el.addEventListener('blur', calculate);
-  } else { 
+  } else { // All other number/percent inputs
       el.addEventListener('focus', () => {
           let currentVal = uncomma(el.value);
-          // Clear "0.00" on focus for easier input, but keep actual numbers
           if (Math.abs(currentVal) < 0.001) {
-              el.value = ''; 
+              el.value = '';
           } else {
-              el.value = String(currentVal); 
+              el.value = String(currentVal);
           }
       });
       el.addEventListener('blur', () => {
           let val = uncomma(el.value);
-          // Format based on input type
           if (id === 'termYears' || id === 'comPercent') {
               el.value = formatNoDecimal(val);
-          } else if (id === 'interestRate') { 
-              el.value = format(val, 2); // Interest rate often needs 2 decimal places
+          } else if (id === 'flatRate' || id === 'effectiveRate') {
+              el.value = format(val, 4); // Display rates with 4 decimals
           }
           else {
-              el.value = format(val); // Default to 2 decimal places
+              el.value = format(val);
           }
-          calculate(); // Recalculate after input is finalized
+          calculate(); // Recalculate on blur
       });
       el.addEventListener('input', () => {
-          // Live sanitization of input to allow only numbers and one decimal point
           let sanitizedValue = el.value.replace(/[^0-9.]/g, '');
           const parts = sanitizedValue.split('.');
           if (parts.length > 2) {
-              sanitizedValue = parts[0] + '.' + parts.slice(1).join(''); // Allow only one decimal
+              sanitizedValue = parts[0] + '.' + parts.slice(1).join('');
           }
           el.value = sanitizedValue;
       });
   }
 }
 
-// Initialize on page load
 window.onload = () => {
-  // Attach event listeners to all relevant input fields
-  ['carPrice', 'discount', 'option', 'downInput', 'interestRate', 'extra', 'termYears', 'comPercent', 'carInfo'].forEach(addInputListeners);
-  
-  // Attach change listeners to select elements
+  // Add listeners for new rate inputs
+  ['carPrice', 'discount', 'option', 'downInput', 'flatRate', 'effectiveRate', 'extra', 'termYears', 'comPercent', 'carInfo'].forEach(addInputListeners);
   document.getElementById('downType').addEventListener('change', calculate);
   document.getElementById('comBase').addEventListener('change', calculate);
-  document.getElementById('rateType').addEventListener('change', calculate); 
   
-  // Perform initial calculation on page load
-  calculate(); 
+  // Set default rate type (Flat Rate) for the dropdown and toggle input fields on load
+  document.getElementById('rateType').value = 'flat';
+  toggleRateInput();
+  calculate(); // Initial calculation on load
 };
 </script>
 
