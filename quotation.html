@@ -35,27 +35,32 @@
     }
     .header {
       display: flex;
-      justify-content: flex-end; /* ข้อมูลบริษัทชิดขวาสุด */
-      align-items: center;
+      justify-content: space-between; /* โลโก้ซ้ายสุด, ข้อมูลบริษัทขวาสุด */
+      align-items: center; /* จัดกึ่งกลางในแนวตั้งระหว่างโลโก้กับข้อมูลบริษัท */
       flex-wrap: wrap;
+      border-bottom: 2px solid var(--orix-logo-blue);
       padding-bottom: 10px;
       margin-bottom: 15px;
+    }
+    .logo img {
+      max-width: 75px; /* ลดขนาดโลโก้ลงอีก */
+      height: auto;
     }
     .company-info {
       text-align: right;
       color: var(--orix-mid-grey);
-      line-height: 1.1;
-      margin-top: 0;
+      line-height: 1.1; /* ทำให้ระยะห่างระหว่างบรรทัดของที่อยู่กระชับขึ้น */
+      margin-top: 0; /* ลบ margin-top เพราะ align-items: center จะจัดการให้ */
     }
     .company-info p {
-        margin: 0;
-        white-space: nowrap;
-        font-size: 7pt;
+        margin: 0; /* ลบ margin เริ่มต้นของ p เพื่อให้ชิดกัน */
+        white-space: nowrap; /* ป้องกันไม่ให้ข้อความขึ้นบรรทัดใหม่โดยไม่จำเป็น */
+        font-size: 7pt; /* ลดขนาดที่อยู่และเบอร์โทรศัพท์ลง 2pt จาก 9pt เดิม */
     }
     .company-info p .company-name {
-        font-size: 9pt;
-        font-weight: 600;
-        white-space: normal;
+        font-size: 9pt; /* ให้ชื่อบริษัทใหญ่เท่าเดิม */
+        font-weight: 600; /* เพิ่มความหนาให้ชื่อบริษัทโดดเด่นขึ้น */
+        white-space: normal; /* อนุญาตให้ชื่อบริษัทขึ้นบรรทัดใหม่ได้ หากยาวเกินไป */
     }
     h1 {
       text-align: center;
@@ -63,8 +68,7 @@
       font-size: 1.4em;
       margin-top: 10px; /* เพิ่มระยะห่างด้านบน */
       margin-bottom: 10px;
-      border-bottom: 2px solid var(--orix-logo-blue); /* ย้ายเส้นมาอยู่ด้านล่าง H1 */
-      padding-bottom: 10px; /* เพิ่มระยะห่างระหว่าง H1 กับเส้นใต้ */
+      /* ลบ border-bottom และ padding-bottom ออก */
     }
     .section-title {
       font-weight: 600;
@@ -175,7 +179,7 @@
       }
       .header {
         flex-direction: row; 
-        justify-content: flex-end; 
+        justify-content: space-between; /* โลโก้ซ้ายสุด, ข้อมูลบริษัทขวาสุด */
         align-items: center; 
         padding-bottom: 5px;
         margin-bottom: 10px;
@@ -193,7 +197,7 @@
       h1 {
         font-size: 1.2em; 
         margin-bottom: 5px;
-        padding-bottom: 5px; 
+        /* ลบ padding-bottom ออก */
       }
       .section-title {
         margin: 10px 0 3px; 
@@ -298,8 +302,8 @@
         padding-bottom: 5mm;
         align-items: center; 
       }
-      .logo {
-          display: none; 
+      .logo img {
+        max-width: 65px; /* ปรับขนาดโลโก้ให้เหมาะสมกับการพิมพ์ */
       }
       .company-info {
           text-align: right; 
@@ -315,7 +319,7 @@
       h1 {
         font-size: 1.3em; 
         margin-bottom: 10mm;
-        padding-bottom: 5mm; 
+        /* ลบ padding-bottom ออก */
       }
       .section-title {
         margin: 8mm 0 3mm; 
@@ -342,8 +346,16 @@
 <body>
   <div class="quotation-container">
     <div class="header">
+      <div class="logo">
+        <img src="orix_logo.png" alt="ORIX Logo" />
+      </div>
       <div class="company-info">
-        </div>
+        <p><span class="company-name">บริษัท ไทยโอริกซ์ลีสซิ่ง จำกัด</span></p>
+        <p>555 รสา วัน (อาคาร บี) ยูนิต 1801 ชั้น 18 และ ชั้น 19</p>
+        <p>ถนนพหลโยธิน แขวงจตุจักร เขตจตุจักร</p>
+        <p>กรุงเทพฯ 10900</p>
+        <p>โทรศัพท์: 66(0) 2792-4500</p>
+      </div>
     </div>
 
     <h1>ใบเสนอราคาเบื้องต้น</h1>
@@ -407,25 +419,41 @@
     // ฟังก์ชันช่วยจัดรูปแบบเปอร์เซ็นต์ให้มีทศนิยม 2 ตำแหน่ง
     const fmtPct = n => isFinite(n) ? Number(n).toFixed(2) : '0.00';
     // ฟังก์ชันช่วยจัดรูปแบบเปอร์เซ็นต์ให้มีทศนิยม 4 ตำแหน่ง (สำหรับ Effective Rate)
-    const fmtPct4 = n => isFinite(n) ? Number(n).toFixed(4) : '0.0000';
+    const fmtPct4 = n => isFinite(n) ? Number(n).toFixed(4) : '0.0000'; // Added for Effective Rate
 
     // ฟังก์ชันโหลดข้อมูลใบเสนอราคาจาก URL hash หรือ localStorage
     function loadPayload() {
+      // Preference: URL Hash first (if available and correctly formatted)
       if (location.hash.startsWith('#data=')) {
         try {
-            return JSON.parse(atob(decodeURIComponent(location.hash.slice(6)));
+            // Updated to handle potential decoding issues more robustly
+            const encodedData = location.hash.slice(6);
+            if (encodedData) {
+                return JSON.parse(atob(decodeURIComponent(encodedData)));
+            }
         } catch (e) {
             console.error("Error decoding URL hash:", e);
         }
       }
-      try { return JSON.parse(localStorage.getItem('quotationData')); } catch (e) {console.error("Error parsing localStorage data:", e);}
+      // Fallback: localStorage
+      try {
+          const storedData = localStorage.getItem('quotationData');
+          if (storedData) {
+              return JSON.parse(storedData);
+          }
+      } catch (e) {
+          console.error("Error parsing localStorage data:", e);
+      }
       return null;
     }
 
     // เมื่อโหลดเอกสารเสร็จสิ้น ให้เติมข้อมูลลงในใบเสนอราคา
     document.addEventListener('DOMContentLoaded', () => {
       const d = loadPayload();
-      if (!d) return alert('ไม่พบข้อมูลใบเสนอราคา');
+      if (!d) {
+        alert('ไม่พบข้อมูลใบเสนอราคา');
+        return;
+      }
 
       // กำหนดค่าข้อมูลรถยนต์
       document.getElementById('q_carInfo').textContent = d.carInfo || '-';
@@ -450,7 +478,7 @@
           rateTypeDisplay.textContent = 'Effective Rate';
           rateValueDisplay.textContent = fmtPct4(d.effectiveRate) + '%'; // Effective rate มักจะแสดง 4 ตำแหน่ง
       } else {
-          // กรณีไม่ระบุ rateType หรือค่าผิดพลาด
+          // กรณีไม่ระบุ rateType หรือค่าผิดพลาด (อาจเกิดขึ้นได้หากมีการเปลี่ยนแปลงโครงสร้างข้อมูล)
           rateTypeDisplay.textContent = 'ไม่ระบุ';
           rateValueDisplay.textContent = '-';
       }
