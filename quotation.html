@@ -416,10 +416,8 @@
   <script>
     // ฟังก์ชันช่วยจัดรูปแบบตัวเลขให้มีทศนิยม 2 ตำแหน่ง
     const fmt = n => isFinite(n) ? Number(n).toLocaleString('en-US', {minimumFractionDigits:2}) : '0.00';
-    // ฟังก์ชันช่วยจัดรูปแบบเปอร์เซ็นต์ให้มีทศนิยม 2 ตำแหน่ง
+    // ฟังก์ชันช่วยจัดรูปแบบเปอร์เซ็นต์ให้มีทศนิยม 2 ตำแหน่ง (ปรับจาก fmtPct4 เดิม)
     const fmtPct = n => isFinite(n) ? Number(n).toFixed(2) : '0.00';
-    // ฟังก์ชันช่วยจัดรูปแบบเปอร์เซ็นต์ให้มีทศนิยม 4 ตำแหน่ง (สำหรับ Effective Rate)
-    const fmtPct4 = n => isFinite(n) ? Number(n).toFixed(4) : '0.0000'; // Added for Effective Rate
 
     // ฟังก์ชันโหลดข้อมูลใบเสนอราคาจาก URL hash หรือ localStorage
     function loadPayload() {
@@ -467,22 +465,22 @@
       document.getElementById('q_downPercent').textContent = fmtPct(d.downPercent) + '%';
       document.getElementById('q_financeAmt').textContent = fmt(d.financeAmt) + ' บาท';
       
-      // *** ส่วนที่เพิ่ม/แก้ไขเพื่อแสดงอัตราดอกเบี้ยตามตัวเลือก ***
+      // *** ส่วนที่แก้ไขเพื่อแสดงอัตราดอกเบี้ย 2 ตำแหน่งเสมอ ***
       const rateTypeDisplay = document.getElementById('q_rateTypeDisplay');
       const rateValueDisplay = document.getElementById('q_rateValueDisplay');
 
       if (d.rateType === 'flat') {
           rateTypeDisplay.textContent = 'Flat Rate';
-          rateValueDisplay.textContent = fmtPct(d.flatRate) + '%'; // Flat rate มักจะแสดง 2 ตำแหน่ง
+          rateValueDisplay.textContent = fmtPct(d.flatRate) + '%'; // ใช้ fmtPct เพื่อ 2 ตำแหน่ง
       } else if (d.rateType === 'effective') {
           rateTypeDisplay.textContent = 'Effective Rate';
-          rateValueDisplay.textContent = fmtPct4(d.effectiveRate) + '%'; // Effective rate มักจะแสดง 4 ตำแหน่ง
+          rateValueDisplay.textContent = fmtPct(d.effectiveRate) + '%'; // ใช้ fmtPct เพื่อ 2 ตำแหน่ง
       } else {
-          // กรณีไม่ระบุ rateType หรือค่าผิดพลาด (อาจเกิดขึ้นได้หากมีการเปลี่ยนแปลงโครงสร้างข้อมูล)
+          // กรณีไม่ระบุ rateType หรือค่าผิดพลาด
           rateTypeDisplay.textContent = 'ไม่ระบุ';
           rateValueDisplay.textContent = '-';
       }
-      // *** สิ้นสุดส่วนที่เพิ่ม/แก้ไข ***
+      // *** สิ้นสุดส่วนที่แก้ไข ***
 
       document.getElementById('q_termYears').textContent = (d.termYears || 0) + ' ปี';
       document.getElementById('q_termMonths').textContent = ((d.termYears || 0) * 12) + ' งวด';
