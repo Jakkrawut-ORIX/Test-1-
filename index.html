@@ -453,12 +453,9 @@ function formatNoDecimal(n) {
   return format(n, 0);
 }
 
+// Re-using format for 4 decimals as well, just passing decimals = 4
 function format4(n) {
-  if (isNaN(n) || n === null) return "0.0000";
-  return new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4
-  }).format(parseFloat(n));
+  return format(n, 4);
 }
 
 function uncomma(s) {
@@ -609,7 +606,8 @@ function calculate() {
       }
   }
 
-  document.getElementById('flatRate').value = format(displayFlatRate);
+  // Display both flat rate and effective rate with 4 decimal places
+  document.getElementById('flatRate').value = format4(displayFlatRate);
   document.getElementById('effectiveRate').value = format4(displayEffectiveRate);
   
   if (months === 0) {
@@ -637,9 +635,9 @@ function calculate() {
   // ถ้าป้อน Effective Rate มา ให้คำนวณ Flat Rate เทียบเท่าสำหรับการแสดงผล intPA, intTotal
   let interestRateForDisplay = 0;
   if (rateType === 'flat') {
-      interestRateForDisplay = flatRate;
+      interestRateForDisplay = flatRate; // Use the user-entered flat rate for display calculations
   } else {
-      // หาก Effective Rate เป็นค่าที่ป้อนหลัก ให้คำนวณดอกเบี้ยรวมแบบ Simple interest สำหรับการแสดงผล
+      // If Effective Rate is the primary input, calculate an equivalent Flat Rate for display purposes
       const totalPaymentsBasedOnEffective = leaseInVat * months;
       const totalInterestBasedOnEffective = totalPaymentsBasedOnEffective - finance;
       if (finance > 0 && years > 0) {
@@ -662,7 +660,9 @@ function calculate() {
   const financeTotalWithInterest = finance + intTotal; // ตรงนี้ยังคงคำนวณแบบ Simple interest เพื่อแสดงผล
 
   // TR Calculation (Effective %) - จะเป็น 'effectiveRate' โดยตรง หรือคำนวณหากป้อน Flat Rate มา
-  const pvForIRR = -(finance + (commission * 1.07) + (extra * 1.07));
+  // Corrected PV for TR calculation to include commission and extra if applicable for the finance amount
+  // The original formula for pvForIRR was correct for TR (Effective %)
+  const pvForIRR = -(finance + (commission * 1.07) + (extra * 1.07)); // This seems to be the correct formula for TR Effective %
   const tr = calculateIRR(months, leaseInVat, pvForIRR, 0, 0) * 12 * 100;
 
   // TR Dep Calculation (ปรับปรุงตามสูตรใหม่ล่าสุด)
@@ -693,7 +693,7 @@ function updateQsInfo(carInfo, car, discount, option, down, years, tr, trDep, qs
     document.getElementById('qsDownAmount').value = format(down);
     document.getElementById('qsTrRate').value = isNaN(tr) ? 'ไม่สามารถคำนวณ' : format4(tr);
     document.getElementById('qsTermYears').value = years;
-    document.getElementById('qsDeposit').value = format(down / 1.07, 4);
+    document.getElementById('qsDeposit').value = format(down / 1.07, 4); // Keep Deposit at 4 decimals as per previous
     const totalAmount = uncomma(document.getElementById('totalAmount').value);
     document.getElementById('qsRV').value = format4(totalAmount > 0 ? (down / totalAmount * 100) : 0) + '%';
     document.getElementById('qsTrDep').value = isNaN(trDep) ? 'ไม่สามารถคำนวณ' : format4(trDep);
@@ -887,7 +887,13 @@ function addInputListeners(id) {
           if (Math.abs(currentVal) < 0.001) {
               el.value = '';
           } else {
-              el.value = String(currentVal);
+              // Ensure that on focus, it shows the raw number for editing
+              // For rates, this should still be the 4-decimal value
+              if (id === 'flatRate' || id === 'effectiveRate') {
+                  el.value = String(currentVal.toFixed(4));
+              } else {
+                  el.value = String(currentVal);
+              }
           }
       });
       el.addEventListener('blur', () => {
@@ -895,7 +901,7 @@ function addInputListeners(id) {
           if (id === 'termYears' || id === 'comPercent') {
               el.value = formatNoDecimal(val);
           } else if (id === 'flatRate' || id === 'effectiveRate') {
-              el.value = format(val, 4); // Display rates with 4 decimals
+              el.value = format4(val); // Display rates with 4 decimals
           }
           else {
               el.value = format(val);
