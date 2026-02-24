@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ORIX Internal Leasing Calculator</title>
+<style>
+body { font-family: Arial; background:#f4f6f9; padding:20px;}
+.container { max-width:1200px; margin:auto; background:white; padding:20px; border-radius:10px;}
+h2 { margin-top:0; color:#003f87;}
+.grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:15px;}
+input, select { width:100%; padding:6px;}
+button { padding:8px 12px; margin-top:5px; cursor:pointer;}
+.result { background:#eef2f7; padding:15px; margin-top:20px; border-radius:8px;}
+.hidden { display:none;}
+.mode-btn { background:#003f87; color:white; border:none;}
+.solve-btn { background:#e30613; color:white; border:none;}
+.toggle-btn { background:#555; color:white; border:none;}
+hr { margin:20px 0;}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h2>Thai ORIX Leasing - Internal Calculator</h2>
+
+<button class="toggle-btn" onclick="toggleView()">Toggle Internal / Client View</button>
+
+<hr>
+
+<div class="grid">
+
+<div>
+<label>Customer Name</label>
+<input id="customer" value="Test">
+</div>
+
+<div>
+<label>Model</label>
+<input id="model" value="Zeekr 009 6Seat">
+</div>
+
+<div>
+<label>Gross Price</label>
+<input type="number" id="gross" value="3159000">
+</div>
+
+<div>
+<label>Deposit</label>
+<input type="number" id="deposit" value="1288035">
+</div>
+
+<div>
+<label>Balloon</label>
+<input type="number" id="balloon" value="0">
+</div>
+
+<div>
+<label>Years</label>
+<input type="number" id="years" value="5">
+</div>
+
+<div>
+<label>Mode</label>
+<select id="mode">
+<option value="flat">Flat</option>
+<option value="irr">IRR</option>
+</select>
+</div>
+
+<div>
+<label>Flat Rate (%)</label>
+<input type="number" step="0.01" id="flat" value="3.09">
+</div>
+
+<div>
+<label>IRR Target (%)</label>
+<input type="number" step="0.0001" id="irrTarget" value="0.0574">
+</div>
+
+<div>
+<label>VAT (%)</label>
+<input type="number" id="vat" value="7">
+</div>
+
+<div>
+<label>Commission (%)</label>
+<input type="number" id="commissionRate" value="2.5">
+</div>
+
+</div>
+
+<hr>
+
+<button class="mode-btn" onclick="calculate()">Calculate</button>
+<button class="solve-btn" onclick="solveDown()">Solve Down (Target 36000)</button>
+<button class="solve-btn" onclick="solveFlat()">Solve IRR Target</button>
+
+<div class="result">
+<h3>Result</h3>
+<div id="output"></div>
+</div>
+
+</div>
+
+<script>
+
+let internalView = true;
+
+function calculate() {
+
+let gross = parseFloat(document.getElementById("gross").value);
+let deposit = parseFloat(document.getElementById("deposit").value);
+let balloon = parseFloat(document.getElementById("balloon").value);
+let years = parseFloat(document.getElementById("years").value);
+let flat = parseFloat(document.getElementById("flat").value);
+let vat = parseFloat(document.getElementById("vat").value);
+let commissionRate = parseFloat(document.getElementById("commissionRate").value);
+
+let finance = gross - deposit;
+let periods = years * 12;
+
+let totalInterest = (finance - balloon) * (flat/100) * years;
+let monthly = (finance - balloon + totalInterest) / periods;
+monthly = Math.round(monthly);
+
+let commission = Math.round(finance * (commissionRate/100));
+
+let irr = calculateIRR(finance, monthly, periods, balloon);
+
+document.getElementById("output").innerHTML = `
+Finance: ${finance.toLocaleString()} <br>
+Total Interest: ${totalInterest.toLocaleString()} <br>
+Monthly: ${monthly.toLocaleString()} <br>
+IRR (approx): ${(irr*100).toFixed(2)}% <br>
+${internalView ? "Commission: " + commission.toLocaleString() : ""}
+`;
+}
+
+function calculateIRR(finance, monthly, periods, balloon) {
+let guess = 0.05;
+for(let i=0;i<100;i++){
+let npv = -finance;
+for(let t=1;t<=periods;t++){
+npv += monthly / Math.pow((1+guess), t);
+}
+npv += balloon / Math.pow((1+guess), periods);
+let derivative = 0;
+for(let t=1;t<=periods;t++){
+derivative -= t*monthly / Math.pow((1+guess), t+1);
+}
+guess = guess - npv/derivative;
+}
+return guess;
+}
+
+function solveDown() {
+let target = 36000;
+let gross = parseFloat(document.getElementById("gross").value);
+let years = parseFloat(document.getElementById("years").value);
+let flat = parseFloat(document.getElementById("flat").value);
+let balloon = parseFloat(document.getElementById("balloon").value);
+
+let low = 0;
+let high = gross;
+let best = 0;
+
+for(let i=0;i<60;i++){
+let mid = Math.floor((low+high)/2);
+let finance = gross - mid;
+let periods = years * 12;
+let totalInterest = (finance - balloon)*(flat/100)*years;
+let monthly = (finance - balloon + totalInterest)/periods;
+
+if(monthly > target){
+low = mid + 1;
+} else {
+high = mid - 1;
+}
+best = mid;
+}
+
+document.getElementById("deposit").value = best;
+calculate();
+}
+
+function solveFlat(){
+let target = parseFloat(document.getElementById("irrTarget").value);
+let guess = 3.0;
+
+for(let i=0;i<100;i++){
+document.getElementById("flat").value = guess;
+calculate();
+
+let irrText = document.getElementById("output").innerHTML;
+let irrMatch = irrText.match(/IRR \(approx\): ([0-9.]+)/);
+if(!irrMatch) return;
+
+let irr = parseFloat(irrMatch[1])/100;
+let diff = irr - target;
+guess = guess - diff * 50;
+}
+
+document.getElementById("flat").value = guess.toFixed(4);
+calculate();
+}
+
+function toggleView(){
+internalView = !internalView;
+calculate();
+}
+
+calculate();
+
+</script>
+</body>
+</html>
