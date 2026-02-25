@@ -7,114 +7,48 @@
 
 <style>
 :root{
- --bg:#0f172a;
- --panel:#111827;
- --muted:#94a3b8;
- --txt:#e5e7eb;
- --accent:#22c55e;
- --accent-2:#0ea5e9;
- --border:#1f2937;
- --danger:#ef4444;
- --warn:#f59e0b;
+ --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --txt:#e5e7eb;
+ --accent:#22c55e; --accent-2:#0ea5e9; --border:#1f2937;
 }
-
-html,body{
- margin:0;padding:0;
- background:var(--bg);
- color:var(--txt);
- font-family:ui-sans-serif,system-ui;
-}
-
-.wrap{max-width:1100px;margin:24px auto 120px;padding:0 16px}
-.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
-.card{
- background:var(--panel);
- border:1px solid var(--border);
- border-radius:12px;
- padding:16px;
- box-shadow:0 4px 12px rgba(0,0,0,0.25);
-}
-
-.col-12{grid-column:span 12}
-.col-6{grid-column:span 6}
-.col-4{grid-column:span 4}
-
-label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-input,select{
- width:100%;
- background:#0b1220;
- color:var(--txt);
- border:1px solid var(--border);
- border-radius:8px;
- padding:10px 12px;
-}
-
-h1{font-size:22px;margin-bottom:6px;letter-spacing:0.3px}
-h3{
- font-size:15px;
- border-left:4px solid var(--accent-2);
- padding-left:8px;
-}
-
-button{
- background:#1e293b;
- color:var(--txt);
- border:1px solid var(--border);
- padding:10px 14px;
- border-radius:10px;
- cursor:pointer;
-}
-button.primary{
- background:var(--accent);
- color:#00310f;
- font-weight:700;
- border:none;
-}
-
-table{width:100%;border-collapse:collapse}
-th,td{border-bottom:1px dashed var(--border);padding:8px 6px;font-size:14px}
-th{color:var(--muted)}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui}
+.wrap{max-width:1100px;margin:24px auto;padding:16px}
+.card{background:var(--panel);padding:16px;border-radius:12px;border:1px solid var(--border);margin-bottom:16px}
+label{font-size:12px;color:var(--muted);display:block;margin-top:8px}
+input,select{width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:#0b1220;color:var(--txt)}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th,td{border-bottom:1px solid var(--border);padding:6px;font-size:14px}
 .right{text-align:right}
-.hl{color:var(--accent);font-weight:600}
+.hl{color:var(--accent);font-weight:700}
+button{margin-top:10px;padding:8px 12px;border:none;border-radius:8px;cursor:pointer;background:var(--accent);color:#00310f;font-weight:700}
 </style>
 </head>
-
 <body>
 <div class="wrap">
 
-<h1>📋 OWS Working Sheet (Web)</h1>
-
 <div class="card">
-<div class="grid">
+<h3>ข้อมูลหลัก</h3>
+<label>ราคารถ (รวม VAT)</label>
+<input id="gross" type="number" value="3159000">
 
-<div class="col-4">
-<h3>Flat Rate</h3>
+<label>เงินดาวน์ (%)</label>
+<input id="downPct" type="number" value="40">
+
+<label>Balloon (บาท)</label>
+<input id="balloonInput" type="number" value="0">
+
 <label>Flat Rate (%)</label>
 <input id="flatRate" type="number" value="3.09">
+
 <label>จำนวนปี</label>
 <input id="years" type="number" value="5">
-</div>
 
-<div class="col-4">
-<h3>การจ่ายงวด</h3>
-<label>ประเภทการจ่าย</label>
+<label>รูปแบบการจ่าย</label>
 <select id="payType">
 <option value="0" selected>ปลายงวด</option>
 <option value="1">ต้นงวด</option>
 </select>
-<label>IRR Target (%)</label>
-<input id="irrTargetPct" type="number" value="5.74">
-</div>
 
-<div class="col-4">
-<h3>ราคา</h3>
-<label>ราคารถ</label>
-<input id="gross" type="number" value="3159000">
-<label>เงินดาวน์ (%)</label>
-<input id="downInput" type="number" value="40">
-</div>
-
-</div>
+<button onclick="recalc()">คำนวณ</button>
 </div>
 
 <div class="card">
@@ -122,7 +56,8 @@ th{color:var(--muted)}
 <table>
 <tr><th>ยอดจัด</th><td class="right" id="finance"></td></tr>
 <tr><th>ค่างวด (Incl VAT)</th><td class="right" id="pmtInc"></td></tr>
-<tr><th>ค่างวด (ปัด)</th><td class="right hl" id="pmtRounded"></td></tr>
+<tr><th>ค่างวด (ปัดขึ้น)</th><td class="right hl" id="pmtRounded"></td></tr>
+<tr><th>Purchase Offer Price</th><td class="right" id="purchaseOffer"></td></tr>
 <tr><th>IRR ต่อปี</th><td class="right" id="irr"></td></tr>
 </table>
 </div>
@@ -130,58 +65,57 @@ th{color:var(--muted)}
 </div>
 
 <script>
-const fmt = v => Number(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
-const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+const fmt=v=>Number(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const clamp=(v,l,h)=>Math.max(l,Math.min(h,v));
 
 function rate(nper,pmt,pv,fv=0,type=0,guess=0.01){
- const maxIter=100,tol=1e-12;
  let r=guess;
- for(let i=0;i<maxIter;i++){
-   const t=Math.pow(1+r,nper);
-   const f=pv*t + pmt*(1+r*type)*(t-1)/r + fv;
-   const df=pv*nper*Math.pow(1+r,nper-1) + 
-     pmt*(1+r*type)*(((t-1)/r)+(nper*Math.pow(1+r,nper-1)/r)-((t-1)/(r*r)));
-   const nr=r-f/df;
-   if(!isFinite(nr)) break;
-   if(Math.abs(nr-r)<tol){r=nr;break;}
-   r=nr;
+ for(let i=0;i<100;i++){
+  let t=Math.pow(1+r,nper);
+  let f=pv*t + pmt*(1+r*type)*(t-1)/r + fv;
+  let df=pv*nper*Math.pow(1+r,nper-1)+
+         pmt*(1+r*type)*(((t-1)/r)+(nper*Math.pow(1+r,nper-1)/r)-((t-1)/(r*r)));
+  let nr=r-f/df;
+  if(!isFinite(nr)) break;
+  if(Math.abs(nr-r)<1e-10) break;
+  r=nr;
  }
  return r;
 }
 
 function recalc(){
+ let gross=parseFloat(gross.value)||0;
+ let downPct=clamp(parseFloat(downPct.value)||0,0,100);
+ document.getElementById('downPct').value=downPct;
 
-let gross=parseFloat(gross.value)||0;
-let downPct=clamp(parseFloat(downInput.value)||0,0,100);
-downInput.value=downPct;
+ let balloon=parseFloat(balloonInput.value)||0;
+ let flat=parseFloat(flatRate.value)/100||0;
+ let years=parseFloat(document.getElementById('years').value)||0;
+ let months=years*12;
+ let vat=0.07;
 
-let flat=parseFloat(flatRate.value)/100;
-let years=parseFloat(document.getElementById('years').value)||0;
-let months=years*12;
-let vat=0.07;
+ let downBaht=gross*(downPct/100);
+ let finance=gross-downBaht;
+ let totalInterest=finance*flat*years;
 
-let finance=gross*(1-downPct/100);
+ let pmtInc=(finance+totalInterest)/months;
+ let pmtRounded=Math.ceil(pmtInc);
 
-let totalInterest=finance*flat*years;
-let pmtInc=(finance+totalInterest)/months;
+ let purchaseOffer=(downBaht===0)?1000:(downBaht+balloon);
 
-let pmtRounded=Math.ceil(pmtInc);
+ let payType=parseInt(document.getElementById('payType').value);
+ let pmtEx=pmtRounded/(1+vat);
+ let pv=-finance/(1+vat);
 
-let payType=parseInt(document.getElementById('payType').value);
+ let irrYear=rate(months,pmtEx,pv,balloon/(1+vat),payType)*12;
 
-let pmtEx=pmtRounded/(1+vat);
-let pv=-finance/(1+vat);
-
-let irrYear=rate(months,pmtEx,pv,0,payType)*12;
-
-document.getElementById('finance').innerText=fmt(finance);
-document.getElementById('pmtInc').innerText=fmt(pmtInc);
-document.getElementById('pmtRounded').innerText=fmt(pmtRounded);
-document.getElementById('irr').innerText=(irrYear*100).toFixed(4)+" %";
+ document.getElementById('finance').innerText=fmt(finance);
+ document.getElementById('pmtInc').innerText=fmt(pmtInc);
+ document.getElementById('pmtRounded').innerText=fmt(pmtRounded);
+ document.getElementById('purchaseOffer').innerText=fmt(purchaseOffer);
+ document.getElementById('irr').innerText=(irrYear*100).toFixed(4)+" %";
 }
-
-document.addEventListener('input',recalc);
-window.onload=recalc;
+recalc();
 </script>
 
 </body>
