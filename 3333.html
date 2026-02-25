@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>OWS PRO | Thai ORIX Leasing</title>
+
+<style>
+:root{
+  --bg:#f6f8fb;
+  --panel:#ffffff;
+  --border:#e5e7eb;
+  --text:#0f172a;
+  --muted:#64748b;
+  --primary:#1d4ed8;
+  --success:#16a34a;
+  --danger:#dc2626;
+  --radius:16px;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  font-family: Inter, system-ui, sans-serif;
+  color:var(--text);
+}
+
+.topbar{
+  height:64px;
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 32px;
+  font-weight:600;
+}
+
+.app{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:28px;
+  max-width:1400px;
+  margin:40px auto;
+  padding:0 24px;
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:28px;
+}
+
+.summary{
+  position:sticky;
+  top:24px;
+  height:fit-content;
+}
+
+.big-number{
+  font-size:38px;
+  font-weight:700;
+  color:var(--primary);
+  margin-bottom:8px;
+}
+
+.label{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:20px;
+}
+
+input, select{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  font-size:14px;
+  background:#fff;
+}
+
+input:focus, select:focus{
+  outline:none;
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(29,78,216,0.15);
+}
+
+button{
+  padding:12px 18px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  font-weight:600;
+}
+
+button.primary{
+  background:var(--primary);
+  color:white;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:14px;
+}
+
+td{
+  padding:6px 0;
+  border-bottom:1px solid #f1f5f9;
+}
+
+@media(max-width:768px){
+  .app{grid-template-columns:1fr;}
+  .summary{position:relative; order:-1;}
+  .big-number{font-size:30px;}
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+  Thai ORIX Leasing – OWS PRO (Internal Tool)
+</header>
+
+<div class="app">
+
+<!-- LEFT PANEL -->
+<section class="panel">
+
+<h3>Asset & Pricing</h3>
+<label>ราคารถ (รวม VAT)</label>
+<input id="gross" type="number" min="0" value="3159000"/>
+
+<label>เงินดาวน์ (บาท)</label>
+<input id="downInput" type="number" min="0" value="1288035"/>
+
+<label>Flat Rate (% ต่อปี)</label>
+<input id="flatRate" type="number" min="0" step="0.0001" value="3.09"/>
+
+<label>จำนวนปี</label>
+<input id="years" type="number" min="1" max="10" value="5"/>
+
+<br><br>
+<button class="primary" onclick="recalc()">คำนวณ</button>
+
+<h3 style="margin-top:40px">Working Sheet</h3>
+<table>
+<tr><td>Finance</td><td id="finance"></td></tr>
+<tr><td>Total Interest</td><td id="totalInterest"></td></tr>
+<tr><td>Monthly (Inc VAT)</td><td id="pmtInc"></td></tr>
+<tr><td>IRR (Year)</td><td id="irr"></td></tr>
+</table>
+
+</section>
+
+<!-- RIGHT SUMMARY -->
+<aside class="panel summary">
+
+<div class="label">Monthly Payment</div>
+<div id="pmtRounded" class="big-number">-</div>
+
+<div class="grid-2">
+<div>
+<div class="label">Finance</div>
+<div id="finance2"></div>
+</div>
+<div>
+<div class="label">Term (Months)</div>
+<div id="months"></div>
+</div>
+<div>
+<div class="label">Down</div>
+<div id="downShow"></div>
+</div>
+<div>
+<div class="label">IRR</div>
+<div id="irr2"></div>
+</div>
+</div>
+
+</aside>
+
+</div>
+
+<script>
+const fmt = v => Number(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const clamp=(v,l,h)=>Math.max(l,Math.min(h,v));
+
+function rate(nper,pmt,pv){
+  let r=0.01;
+  for(let i=0;i<50;i++){
+    const f=pv*Math.pow(1+r,nper)+pmt*((Math.pow(1+r,nper)-1)/r);
+    const df=nper*pv*Math.pow(1+r,nper-1)+pmt*((Math.pow(1+r,nper)-1)/r**2);
+    r=r-f/df;
+  }
+  return r;
+}
+
+function recalc(){
+
+  const vat=0.07;
+  const gross=clamp(+gross.value,0,1e9);
+  const down=clamp(+downInput.value,0,gross);
+  const flat=clamp(+flatRate.value/100,0,1);
+  const years=clamp(+years.value,1,10);
+  const months=years*12;
+
+  const finance=gross-down;
+  const totalInterest=finance*flat*years;
+  const monthly=(finance+totalInterest)/months;
+  const monthlyRounded=Math.round(monthly);
+
+  const r=rate(months,monthly/(1+vat),-finance/(1+vat))*12;
+
+  finance2.textContent=fmt(finance);
+  finance.textContent=fmt(finance);
+  totalInterest.textContent=fmt(totalInterest);
+  pmtInc.textContent=fmt(monthly);
+  pmtRounded.textContent=fmt(monthlyRounded);
+  months.textContent=months;
+  downShow.textContent=fmt(down);
+  irr.textContent=(r*100).toFixed(3)+" %";
+  irr2.textContent=(r*100).toFixed(3)+" %";
+}
+
+recalc();
+</script>
+
+</body>
+</html>
