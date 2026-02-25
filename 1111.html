@@ -2,74 +2,107 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>ORIX Internal Leasing Calculator</title>
+<title>ORIX Leasing Calculator</title>
 <style>
-body { font-family: Arial; background:#f4f6f9; padding:20px;}
-.container { max-width:1200px; margin:auto; background:white; padding:20px; border-radius:10px;}
-h2 { margin-top:0; color:#003f87;}
-.grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:15px;}
-input, select { width:100%; padding:6px;}
-button { padding:8px 12px; margin-top:5px; cursor:pointer;}
-.result { background:#eef2f7; padding:15px; margin-top:20px; border-radius:8px;}
-.hidden { display:none;}
-.mode-btn { background:#003f87; color:white; border:none;}
-.solve-btn { background:#e30613; color:white; border:none;}
-.toggle-btn { background:#555; color:white; border:none;}
-hr { margin:20px 0;}
+body{font-family:Arial;background:#f4f6f9;margin:0;padding:20px;}
+.container{max-width:1500px;margin:auto;background:#fff;padding:25px;border-radius:10px;}
+h2{color:#003f87;margin-top:0}
+.section{border:1px solid #ddd;border-radius:8px;padding:15px;margin-bottom:20px;}
+.section h3{margin-top:0;color:#003f87}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+input,select{width:100%;padding:6px;}
+button{padding:10px 16px;background:#003f87;color:white;border:none;border-radius:5px;cursor:pointer}
+.result{background:#eef2f7;padding:15px;border-radius:8px;margin-top:20px;}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+td,th{border:1px solid #ddd;padding:6px;text-align:right;}
+th{background:#003f87;color:white;}
+.label{text-align:left}
 </style>
 </head>
 
 <body>
 <div class="container">
-<h2>Thai ORIX Leasing - Internal Calculator</h2>
 
-<button class="toggle-btn" onclick="toggleView()">Toggle Internal / Client View</button>
+<h2>ORIX Internal Leasing Calculator</h2>
 
-<hr>
-
+<!-- ================= CUSTOMER SECTION ================= -->
+<div class="section">
+<h3>📄 ข้อมูลลูกค้า & เอกสาร</h3>
 <div class="grid">
-
-<div>
-<label>Customer Name</label>
-<input id="customer" value="Test">
+<div><label>ชื่อลูกค้า</label><input id="customer" value="Test"></div>
+<div><label>MKT</label><input id="mkt" value="Jakkrawut Naksomphan"></div>
+<div><label>อายุใบเสนอราคา (วัน)</label><input type="number" id="quoteAge" value="30"></div>
+<div><label>วันที่ออกเอกสาร</label><input type="date" id="issueDate"></div>
+</div>
 </div>
 
-<div>
-<label>Model</label>
-<input id="model" value="Zeekr 009 6Seat">
+<!-- ================= ASSET SECTION ================= -->
+<div class="section">
+<h3>🚗 ทรัพย์สิน / รถ</h3>
+<div class="grid">
+<div><label>รุ่นรถ</label><input id="model" value="Zeekr 009 6Seat"></div>
+<div><label>ราคารถ (Gross)</label><input type="number" id="gross" value="3159000"></div>
+<div><label>ส่วนลด (-)</label><input type="number" id="discount" value="0"></div>
+<div><label>Option (+)</label><input type="number" id="optionAdd" value="0"></div>
+</div>
 </div>
 
-<div>
-<label>Gross Price</label>
-<input type="number" id="gross" value="3159000">
+<!-- ================= PRICE SECTION ================= -->
+<div class="section">
+<h3>💰 ราคา & VAT</h3>
+<div class="grid">
+<div><label>VAT (%)</label><input type="number" id="vat" value="7"></div>
+<div><label>จำนวนปี (Terms)</label><input type="number" id="years" value="5"></div>
+</div>
 </div>
 
+<!-- ================= DEPOSIT SECTION ================= -->
+<div class="section">
+<h3>💳 เงินดาวน์ & Balloon</h3>
+<div class="grid">
 <div>
-<label>Deposit</label>
-<input type="number" id="deposit" value="1288035">
-</div>
-
-<div>
-<label>Balloon</label>
-<input type="number" id="balloon" value="0">
-</div>
-
-<div>
-<label>Years</label>
-<input type="number" id="years" value="5">
-</div>
-
-<div>
-<label>Mode</label>
-<select id="mode">
-<option value="flat">Flat</option>
-<option value="irr">IRR</option>
+<label>ประเภทดาวน์</label>
+<select id="downType">
+<option value="amount">บาท</option>
+<option value="percent">%</option>
 </select>
 </div>
 
 <div>
+<label>เงินดาวน์</label>
+<input type="number" id="depositInput" value="1288035">
+</div>
+
+<div>
+<label>Balloon</label>
+<select id="balloonFlag">
+<option value="false">FALSE</option>
+<option value="true">TRUE</option>
+</select>
+</div>
+
+<div>
+<label>ประเภท Balloon</label>
+<select id="balloonType">
+<option value="amount">บาท</option>
+<option value="percent">%</option>
+</select>
+</div>
+
+<div>
+<label>ค่า Balloon</label>
+<input type="number" id="balloonInput" value="0">
+</div>
+</div>
+</div>
+
+<!-- ================= CALC MODE ================= -->
+<div class="section">
+<h3>📊 โหมดคำนวณ & คอมมิชชั่น</h3>
+<div class="grid">
+<div>
 <label>Flat Rate (%)</label>
-<input type="number" step="0.01" id="flat" value="3.09">
+<input type="number" step="0.01" id="flatRate" value="3.09">
 </div>
 
 <div>
@@ -78,138 +111,98 @@ hr { margin:20px 0;}
 </div>
 
 <div>
-<label>VAT (%)</label>
-<input type="number" id="vat" value="7">
+<label>ฐานค่าคอมมิชชั่น</label>
+<select id="commissionBaseType">
+<option value="finance">ยอดจัด</option>
+<option value="interest">ดอกเบี้ย</option>
+</select>
 </div>
 
 <div>
-<label>Commission (%)</label>
+<label>% ค่าคอม</label>
 <input type="number" id="commissionRate" value="2.5">
 </div>
 
+<div>
+<label>Extra ค่าคอม (บาท)</label>
+<input type="number" id="commissionExtra" value="0">
+</div>
+</div>
 </div>
 
-<hr>
+<button onclick="calculate()">Calculate</button>
 
-<button class="mode-btn" onclick="calculate()">Calculate</button>
-<button class="solve-btn" onclick="solveDown()">Solve Down (Target 36000)</button>
-<button class="solve-btn" onclick="solveFlat()">Solve IRR Target</button>
-
-<div class="result">
-<h3>Result</h3>
-<div id="output"></div>
-</div>
+<div class="result" id="result"></div>
 
 </div>
 
 <script>
 
-let internalView = true;
+function calculate(){
 
-function calculate() {
+let gross = num("gross")
+let discount = num("discount")
+let optionAdd = num("optionAdd")
+let vatRate = num("vat")/100
+let downType = val("downType")
+let depositInput = num("depositInput")
+let balloonFlag = val("balloonFlag")==="true"
+let balloonType = val("balloonType")
+let balloonInput = num("balloonInput")
+let years = num("years")
+let flatRate = num("flatRate")/100
+let commissionRate = num("commissionRate")/100
+let commissionExtra = num("commissionExtra")
 
-let gross = parseFloat(document.getElementById("gross").value);
-let deposit = parseFloat(document.getElementById("deposit").value);
-let balloon = parseFloat(document.getElementById("balloon").value);
-let years = parseFloat(document.getElementById("years").value);
-let flat = parseFloat(document.getElementById("flat").value);
-let vat = parseFloat(document.getElementById("vat").value);
-let commissionRate = parseFloat(document.getElementById("commissionRate").value);
+let netPrice = gross - discount + optionAdd
 
-let finance = gross - deposit;
-let periods = years * 12;
-
-let totalInterest = (finance - balloon) * (flat/100) * years;
-let monthly = (finance - balloon + totalInterest) / periods;
-monthly = Math.round(monthly);
-
-let commission = Math.round(finance * (commissionRate/100));
-
-let irr = calculateIRR(finance, monthly, periods, balloon);
-
-document.getElementById("output").innerHTML = `
-Finance: ${finance.toLocaleString()} <br>
-Total Interest: ${totalInterest.toLocaleString()} <br>
-Monthly: ${monthly.toLocaleString()} <br>
-IRR (approx): ${(irr*100).toFixed(2)}% <br>
-${internalView ? "Commission: " + commission.toLocaleString() : ""}
-`;
+// จำกัด % ดาวน์ ไม่เกิน 100%
+if(downType==="percent"){
+if(depositInput>100){ depositInput=100; document.getElementById("depositInput").value=100 }
 }
 
-function calculateIRR(finance, monthly, periods, balloon) {
-let guess = 0.05;
-for(let i=0;i<100;i++){
-let npv = -finance;
-for(let t=1;t<=periods;t++){
-npv += monthly / Math.pow((1+guess), t);
-}
-npv += balloon / Math.pow((1+guess), periods);
-let derivative = 0;
-for(let t=1;t<=periods;t++){
-derivative -= t*monthly / Math.pow((1+guess), t+1);
-}
-guess = guess - npv/derivative;
-}
-return guess;
+let deposit = downType==="percent" ? netPrice*depositInput/100 : depositInput
+
+let balloon=0
+if(balloonFlag){
+balloon = balloonType==="percent" ? netPrice*balloonInput/100 : balloonInput
 }
 
-function solveDown() {
-let target = 36000;
-let gross = parseFloat(document.getElementById("gross").value);
-let years = parseFloat(document.getElementById("years").value);
-let flat = parseFloat(document.getElementById("flat").value);
-let balloon = parseFloat(document.getElementById("balloon").value);
+let finance = netPrice - deposit
+let periods = years*12
+let financeLessBalloon = finance - balloon
 
-let low = 0;
-let high = gross;
-let best = 0;
+let totalInterest = financeLessBalloon * flatRate * years
 
-for(let i=0;i<60;i++){
-let mid = Math.floor((low+high)/2);
-let finance = gross - mid;
-let periods = years * 12;
-let totalInterest = (finance - balloon)*(flat/100)*years;
-let monthly = (finance - balloon + totalInterest)/periods;
+let monthlyIncVAT = periods>0 ? (financeLessBalloon + totalInterest)/periods : 0
 
-if(monthly > target){
-low = mid + 1;
-} else {
-high = mid - 1;
-}
-best = mid;
-}
+// ROUND UP เป็น .00 เสมอ
+monthlyIncVAT = Math.ceil(monthlyIncVAT)
 
-document.getElementById("deposit").value = best;
-calculate();
-}
+let commissionBase = val("commissionBaseType")==="interest" ? totalInterest : finance
+let commission = Math.round(commissionBase*commissionRate + commissionExtra)
 
-function solveFlat(){
-let target = parseFloat(document.getElementById("irrTarget").value);
-let guess = 3.0;
+// Purchase Offer Price
+let purchaseOffer = deposit==0 ? 1000 : (deposit + balloon)
 
-for(let i=0;i<100;i++){
-document.getElementById("flat").value = guess;
-calculate();
+document.getElementById("result").innerHTML = `
+<b>ราคาสุทธิ:</b> ${fmt(netPrice)} <br>
+<b>เงินดาวน์:</b> ${fmt(deposit)} <br>
+<b>Balloon:</b> ${fmt(balloon)} <br>
+<b>ยอดจัด:</b> ${fmt(finance)} <br>
+<b>ดอกเบี้ยรวม:</b> ${fmt(totalInterest)} <br>
+<b>ค่างวด/เดือน (Incl VAT):</b> ${fmt(monthlyIncVAT)} <br>
+<b>Purchase Offer Price (Incl VAT):</b> ${fmt(purchaseOffer)} <br>
+<b>คอมมิชชั่น:</b> ${fmt(commission)}
+`
 
-let irrText = document.getElementById("output").innerHTML;
-let irrMatch = irrText.match(/IRR \(approx\): ([0-9.]+)/);
-if(!irrMatch) return;
-
-let irr = parseFloat(irrMatch[1])/100;
-let diff = irr - target;
-guess = guess - diff * 50;
 }
 
-document.getElementById("flat").value = guess.toFixed(4);
-calculate();
-}
+function num(id){ return parseFloat(document.getElementById(id).value)||0 }
+function val(id){ return document.getElementById(id).value }
+function fmt(x){ return Number(x).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) }
 
-function toggleView(){
-internalView = !internalView;
-calculate();
-}
-
-calculate();
+calculate()
 
 </script>
 </body>
