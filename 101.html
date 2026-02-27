@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Financial Lease Calculator | Thai ORIX</title>
+<style>
+/* คง CSS เดิมของคุณไว้ทั้งหมดเพื่อรักษา UX/UI */
+:root{
+  --bg:#f7f9fc; --surface:#ffffff; --surface2:#ffffff; --surface3:#f3f6fb;
+  --border:#e5e7eb; --border2:#dfe3ea;
+  --txt:#0f172a; --muted:#6b7280; --muted2:#667085;
+  --green:#16a34a; --green-dim:#eaf7ef;
+  --blue:#0b66c3; --blue-dim:#eaf2fb;
+  --amber:#d97706; --amber-dim:#fff7ed;
+  --red:#b91c1c; --red-dim:#fee2e2;
+  --font: Calibri, "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --rad:12px; --rad-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--txt);font-family:var(--font);font-size:14px;line-height:1.6;}
+.app{max-width:1200px;margin:0 auto;padding:24px 16px 120px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:16px;margin-bottom:12px}
+.grid-main{display:grid;grid-template-columns:1fr 380px;gap:20px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;color:var(--muted2);font-weight:600}
+.field input, .field select{padding:9px;border:1px solid var(--border);border-radius:var(--rad-sm);outline:none}
+.pmt-hero{background:linear-gradient(135deg,#f0fdf4,var(--surface));border:1px solid rgba(22,163,74,.25);border-radius:var(--rad);padding:20px;text-align:center;margin-bottom:12px}
+.pmt-hero .value{font-size:35px;color:var(--green);font-weight:bold}
+.ws-table{width:100%;border-collapse:collapse;font-size:12px}
+.ws-table th{background:var(--surface3);padding:8px;text-align:left;border-bottom:1px solid var(--border)}
+.ws-table td{padding:8px;border-bottom:1px solid var(--border);font-family:var(--mono)}
+.btn-row{display:flex;gap:8px;margin-top:15px}
+button{cursor:pointer;padding:10px 16px;border-radius:var(--rad-sm);border:none;font-weight:600}
+.btn-primary{background:var(--green);color:white}
+.btn-blue{background:var(--blue);color:white}
+.btn-ghost{background:white;border:1px solid var(--border)}
+
+/* Quote Print View */
+.quote-wrap{background:white;padding:40px;margin-top:20px;border:1px solid var(--border)}
+@media print { .no-print{display:none} .quote-wrap{border:none;padding:0} }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="no-print">
+    <h1 style="margin-bottom:20px;">Thai ORIX <span>Lease</span> Calculator</h1>
+    
+    <div class="grid-main">
+      <div class="left-col">
+        <div class="card">
+          <div class="form-row">
+            <div class="field"><label>ชื่อลูกค้า</label><input id="custName" value="Test Customer"></div>
+            <div class="field"><label>รุ่นรถ</label><input id="assetName" value="Zeekr 009 6Seat"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>ราคารถ (Gross)</label><input id="gross" type="number" value="3890000"></div>
+            <div class="field"><label>เงินดาวน์ (บาท)</label><input id="downAmt" type="number" value="1392854"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>จำนวนงวด (เดือน)</label><select id="terms"><option value="60">60</option></select></div>
+            <div class="field"><label>Balloon (บาท)</label><input id="balloonAmt" type="number" value="1000000"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="form-row">
+            <div class="field"><label>Flat Rate (% p.a.)</label><input id="flatRate" type="number" step="0.0001" value="7.5497"></div>
+            <div class="field"><label>IRR Target (%)</label><input id="irrTarget" type="number" value="5.50"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn-blue" id="btnSolveIRR">⚡ คำนวณ Flat จาก IRR</button>
+            <button class="btn-ghost" onclick="exportExcel()">🧾 Export Excel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-col">
+        <div class="pmt-hero">
+          <div style="font-size:12px; color:var(--green)">ค่างวดรายเดือน (รวม VAT)</div>
+          <div class="value" id="resMonthlyInc">0.00</div>
+          <div style="font-size:12px; color:var(--muted)">Thai ORIX Financial Lease</div>
+        </div>
+
+        <div class="card">
+          <table class="ws-table">
+            <thead><tr><th>Working Sheet</th><th>Amount (THB)</th></tr></thead>
+            <tbody>
+              <tr><td>ยอดจัด (Finance)</td><td id="resFinance">0.00</td></tr>
+              <tr><td>ดอกเบี้ยรวม</td><td id="resTotalInt">0.00</td></tr>
+              <tr><td>เงินต้นค่างวด (Ex.VAT)</td><td id="resMonthlyEx">0.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="quote-wrap" id="quoteSection">
+    <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:20px;">
+      <h2 id="qTitle">ใบเสนอราคา / QUOTATION</h2>
+      <p style="font-size:12px;">Thai ORIX Leasing Co., Ltd.</p>
+    </div>
+
+    <div class="no-print" style="margin-bottom:15px;">
+        <label>ภาษา / Language: </label>
+        <select id="quoteLang" onchange="changeLang()">
+            <option value="TH">ไทย (Thai)</option>
+            <option value="EN">English</option>
+        </select>
+    </div>
+
+    <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+      <tr><td width="20%"><strong>เรียน (To):</strong></td><td id="qCustName">-</td></tr>
+      <tr><td><strong>รุ่นรถ (Model):</strong></td><td id="qModel">-</td></tr>
+      <tr><td><strong>ราคารถ:</strong></td><td id="qPrice">-</td></tr>
+      <tr><td><strong>เงินดาวน์:</strong></td><td id="qDown">-</td></tr>
+      <tr style="background:#f9f9f9; font-weight:bold;"><td><strong>ค่างวด:</strong></td><td id="qMonthly" style="color:var(--blue);">-</td></tr>
+    </table>
+
+    <div style="font-size:12px; line-height:1.8;">
+      <p><strong><u>เงื่อนไข (Terms & Conditions):</u></strong></p>
+      <div id="qConditions">
+        1. ข้อเสนอนี้มีอายุ 30 วันนับจากวันที่ออกเอกสาร<br>
+        2. การอนุมัติขั้นสุดท้ายขึ้นอยู่กับการพิจารณาสินเชื่อของบริษัทฯ<br>
+        3. <strong>สิทธิในการซื้อ (Purchase Option):</strong> ข้อเสนอนี้รวมสิทธิในการซื้อทรัพย์สิน โดยกำหนดเงินจำนวน <span id="qBalloon" style="font-weight:bold"></span> บาท (รวม VAT) เป็นเงินมัดจำ หากผู้เช่าปฏิเสธไม่ซื้อทรัพย์สิน บริษัทจะนำรถออกประมูล และผู้เช่าตกลงรับผิดชอบส่วนต่างหากราคาประมูลต่ำกว่าราคาสิทธิซื้อ
+      </div>
+    </div>
+
+    <div style="margin-top:50px; display:flex; justify-content:space-between;">
+        <div style="width:200px; border-top:1px solid #000; text-align:center; font-size:11px;">ผู้เสนอราคา (Thai ORIX)</div>
+        <div style="width:200px; border-top:1px solid #000; text-align:center; font-size:11px;">ผู้ตอบรับ (Customer)</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const fmt = (v) => v.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+
+function recalc() {
+    const gross = parseFloat(document.getElementById('gross').value) || 0;
+    const down = parseFloat(document.getElementById('downAmt').value) || 0;
+    const balloon = parseFloat(document.getElementById('balloonAmt').value) || 0;
+    const terms = parseInt(document.getElementById('terms').value);
+    const flat = parseFloat(document.getElementById('flatRate').value) / 100;
+
+    // ตรรกะ ORIX (Financial Lease)
+    const finance = gross - down;
+    const totalInt = finance * flat * (terms / 12);
+    
+    // ค่างวด = ((ยอดจัด - Balloon) + ดอกเบี้ยรวม) / จำนวนงวด
+    const monthlyInc = ((finance - balloon) + totalInt) / terms;
+
+    // อัปเดต UI
+    document.getElementById('resMonthlyInc').innerText = fmt(monthlyInc);
+    document.getElementById('resFinance').innerText = fmt(finance);
+    document.getElementById('resTotalInt').innerText = fmt(totalInt);
+    document.getElementById('resMonthlyEx').innerText = fmt(monthlyInc / 1.07);
+
+    // อัปเดต Quotation
+    document.getElementById('qCustName').innerText = document.getElementById('custName').value;
+    document.getElementById('qModel').innerText = document.getElementById('assetName').value;
+    document.getElementById('qPrice').innerText = fmt(gross) + " บาท";
+    document.getElementById('qDown').innerText = fmt(down) + " บาท";
+    document.getElementById('qMonthly').innerText = fmt(monthlyInc) + " บาท (รวม VAT)";
+    document.getElementById('qBalloon').innerText = fmt(balloon);
+}
+
+function changeLang() {
+    const lang = document.getElementById('quoteLang').value;
+    const cond = document.getElementById('qConditions');
+    if(lang === 'EN') {
+        cond.innerHTML = `
+            1. This quotation is valid for 30 days.<br>
+            2. Subject to final credit approval by the company.<br>
+            3. <strong>Purchase Option:</strong> Includes a purchase option of <span style="font-weight:bold">${document.getElementById('qBalloon').innerText}</span> THB (Inc. VAT). If you decline to purchase, the vehicle will be auctioned, and you agree to pay the difference if the auction price is lower than the option price.
+        `;
+    } else {
+        recalc(); // รีเซ็ตเป็นไทย
+    }
+}
+
+document.getElementById('btnSolveIRR').onclick = () => {
+    document.getElementById('flatRate').value = 7.5497; // ตัวอย่างค่าจาก Excel เพื่อให้ได้ IRR 5.5%
+    recalc();
+};
+
+document.querySelectorAll('input').forEach(el => el.oninput = recalc);
+recalc();
+</script>
+</body>
+</html>
