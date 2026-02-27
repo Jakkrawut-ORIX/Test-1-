@@ -700,8 +700,8 @@ function recalc(){
   const netEx=net/(1+vatPct),downEx=downBaht/(1+vatPct),finEx=finance/(1+vatPct),commEx=commission/(1+vatPct),rvEx=(downBaht+balloonBaht)/(1+vatPct);
 
   /* ===== Write Results ===== */
-  // HERO & Monthly rows → ไม่มีทศนิยม
-  setText('pmtRounded', fmt0(pmtRounded));
+  // HERO & Monthly rows 
+  setText('pmtRounded', fmt2(pmt));
   setText('months_hero', months+' งวด');
 
   setText('netPrice',        fmt2(net));
