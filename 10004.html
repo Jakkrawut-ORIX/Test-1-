@@ -167,6 +167,32 @@ button{font-family:var(--font);cursor:pointer;font-size:13px;font-weight:600;bor
   .qm-table th,.qm-table td,.asset-table td,.asset-table thead th{color:#111;border-color:#ddd}
   .asset-table thead th{background:#f0f0f0}
 }
+
+  /* ===== Editable Inputs: base & typing highlight ===== */
+.field input.editable,
+.field select.editable{
+  background:#ffffff;           /* พื้นขาวสะอาด อ่านง่าย */
+  border-color: var(--border);
+  transition: background .15s, border-color .15s, box-shadow .15s;
+}
+
+/* Hover: บอกเป็นนัยว่าแก้ไขได้ */
+.field input.editable:hover,
+.field select.editable:hover{
+  border-color: var(--border2);
+}
+
+/* ตอนกำลังพิมพ์ (โฟกัส) → ไฮไลต์พาสเทลอุ่นตา */
+.field input.editing,
+.field select.editing{
+  background:#fff8e6;                     /* โทนพาสเทล */
+  border-color:#f2b661;                   /* เข้าชุดกับ amber */
+  box-shadow:0 0 0 3px rgba(242,182,97,.22);
+}
+
+/* อ่านง่ายขึ้น: placeholder จางลงเล็กน้อย */
+.field input::placeholder{ color:#9aa3af }
+  
 </style>
 </head>
 <body>
@@ -569,7 +595,103 @@ const fmt4=(v)=> (isFinite(v)? Number(v).toLocaleString('th-TH',{minimumFraction
 const fmtNum=(v,d=2)=> (isFinite(v)? Number(v).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d}):'-');
 
 /* ===== Utils ===== */
-function getVal(id){const el=document.getElementById(id);if(!el)return null;if(el.type==='number')return parseFloat(el.value||'0');return el.value;}
+/* อ่านค่าอินพุต: รองรับช่องที่มีคอมมา โดยดูจาก data-num="1" หรือ type=number */
+function getVal(id){
+  const el=document.getElementById(id);
+  if(!el) return null;
+
+  // ช่องตัวเลข: ถ้ามี data-num=1 หรือเดิมเป็น number → แปลงคอมมาออกก่อน parse
+  const isNumeric = el.getAttribute?.('data-num')==='1' || el.type==='number';
+  if(isNumeric){
+    const raw = (el.value||'').toString().replace(/,/g,'').trim();
+    const v = parseFloat(raw);
+    return isNaN(v) ? 0 : v;
+  }
+
+  // ช่องปกติ
+  return el.value;
+}
+  /* ===== Numeric formatting (comma) helpers ===== */
+function formatWithCommaKeepFrac(str){
+  // คืนสตริงที่ใส่ , เฉพาะส่วนนับพัน แต่คงทศนิยมเดิม
+  if(!str) return '';
+  const s = String(str).replace(/,/g,'').trim().replace(/^0+(?=\d)/,'0');
+  if(s==='.' || s==='-') return s; // ระหว่างพิมพ์
+  if(isNaN(s)) return str;
+
+  const neg = s.startsWith('-') ? '-' : '';
+  const body = s.replace(/^-/, '');
+  const parts = body.split('.');
+  const intPart = parts[0] ? Number(parts[0]).toLocaleString('th-TH') : '0';
+  const frac = (parts.length>1) ? '.'+parts[1] : '';
+  return neg + intPart + frac;
+}
+
+function unformatComma(str){
+  return String(str||'').replace(/,/g,'');
+}
+
+/* ติดตั้งฟอร์แมตคอมมาให้ input ที่เป็นตัวเลข + ไฮไลต์ตอนโฟกัส */
+function setupNumericFormattingAndHighlight(){
+  // เลือกอินพุตตัวเลขทั้งหมด (type=number เดิม) แล้วเปิดโหมดฟอร์แมต
+  const numInputs = document.querySelectorAll('input[type="number"], input[data-num="1"]');
+
+  numInputs.forEach(el=>{
+    // เปิด flag ว่าเป็นช่องตัวเลข
+    el.setAttribute('data-num','1');
+
+    // เพื่อให้พิมพ์คอมมาได้ เปลี่ยนเป็น text (คุมด้วย data-num แทน)
+    if(el.type === 'number'){
+      // เก็บค่าเดิมชั่วคราว
+      const val = el.value;
+      el.type = 'text';
+      if(!el.getAttribute('inputmode')) el.setAttribute('inputmode','decimal'); // ให้คีย์บอร์ดเลข
+      el.value = val; // คืนค่าเดิม
+    }
+
+    // แยกแยะ editable + เพิ่มคลาสสำหรับ base style
+    if(!el.readOnly && !el.disabled){
+      el.classList.add('editable');
+      el.addEventListener('focus', ()=> el.classList.add('editing'));
+      el.addEventListener('blur',  ()=> el.classList.remove('editing'));
+    }
+
+    // เมื่อโฟกัส: เอาคอมมาออก เพื่อให้แก้ง่าย
+    el.addEventListener('focus', ()=>{
+      el.value = unformatComma(el.value);
+      // เคอร์เซอร์ไปท้ายสุด
+      setTimeout(()=>{ try{ el.setSelectionRange(el.value.length, el.value.length);}catch(_){/* ignore */} },0);
+    });
+
+    // จำกัดอักขระระหว่างพิมพ์: อนุญาต 0-9, ., -, คอมมา (คอมมาจะลบออกตอน blur)
+    el.addEventListener('input', ()=>{
+      const caret = el.selectionStart;
+      const before = el.value;
+      // กรองอักขระแปลก ๆ ออก
+      el.value = before.replace(/[^\d,.\-]/g,'');
+      // แจ้ง recalc ตามระบบเดิม (เหตุการณ์ input ของ document ก็มีอยู่แล้ว)
+    });
+
+    // เมื่อออกจากช่อง: ใส่คอมมาให้สวยงาม
+    el.addEventListener('blur', ()=>{
+      el.value = formatWithCommaKeepFrac(el.value);
+    });
+
+    // ฟอร์แมตค่าเริ่มต้น (ถ้ามี)
+    if(el.value){
+      el.value = formatWithCommaKeepFrac(el.value);
+    }
+  });
+
+  // เพิ่มไฮไลต์ให้ select (แก้ไขได้)
+  document.querySelectorAll('select').forEach(sel=>{
+    if(!sel.disabled){
+      sel.classList.add('editable');
+      sel.addEventListener('focus', ()=> sel.classList.add('editing'));
+      sel.addEventListener('blur',  ()=> sel.classList.remove('editing'));
+    }
+  });
+}
 function setVal(id,v){const el=document.getElementById(id);if(el)el.value=v;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 function todayIso(){const d=new Date();const tz=d.getTimezoneOffset();const z=new Date(d.getTime()-tz*60*1000);return z.toISOString().slice(0,10);}
