@@ -46,6 +46,7 @@ html,body{background:var(--bg);color:var(--txt);font-family:var(--font);font-siz
 /* FORM */
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .form-row.c3{grid-template-columns:1fr 1fr 1fr}
+.form-row.c1{grid-template-columns:1fr}
 .field{display:flex;flex-direction:column;gap:5px}
 .field label{font-size:11px;color:var(--muted2);font-weight:600;letter-spacing:.2px}
 .field label span.hint{color:var(--muted);font-weight:400}
@@ -57,6 +58,11 @@ html,body{background:var(--bg);color:var(--txt);font-family:var(--font);font-siz
 .field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(11,102,195,.12);background:#fff}
 .field input[readonly]{color:#98a2b3;background:#f9fafb;cursor:default}
 .field select{cursor:pointer}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.2)}
+.field.mono input{font-family:var(--mono);font-size:13px}
+.field.highlight input{color:var(--blue);font-weight:700;font-family:var(--mono)}
+
+/* NUMBER INPUTS */
 input[type=number]{appearance:textfield;text-align:right}
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 
@@ -64,26 +70,41 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .result-grid{display:flex;flex-direction:column;gap:6px}
 .result-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:var(--rad-sm);background:#fff;border:1px solid var(--border)}
 .result-row .rl{font-size:12px;color:var(--muted2)}
-.result-row .rv{font-family:var(--mono);font-size:13px}
+.result-row .rv{font-family:var(--mono);font-size:13px;color:var(--txt)}
 
-/* HERO */
+/* BIG PMT DISPLAY */
 .pmt-hero{background:linear-gradient(135deg,#f0fdf4,var(--surface));border:1px solid rgba(22,163,74,.25);border-radius:var(--rad);padding:14px;text-align:center;margin-bottom:12px}
 .pmt-hero .label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--green);opacity:.9;margin-bottom:4px;font-weight:700}
 .pmt-hero .value{font-family:var(--serif);font-size:30px;color:var(--green);letter-spacing:-0.5px;line-height:1}
 .pmt-hero .sub{font-size:12px;color:var(--muted2);margin-top:4px}
 
-/* WS */
+/* WORKING SHEET */
 .ws-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden}
 .ws-table th{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface3)}
 .ws-table td{padding:7px 8px;font-size:12px;font-family:var(--mono);border-bottom:1px solid var(--border)}
 .ws-table td:not(:first-child){text-align:right}
 
+/* POLICY WARNING */
+#policyWarnings{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.pill.ok{background:var(--green-dim);color:var(--green)}
+.pill.warn{background:var(--amber-dim);color:var(--amber)}
+.pill.err{background:var(--red-dim);color:var(--red)}
+
 /* PRINT */
 @page{size:A4;margin:12mm}
 @media print{
   .no-print{display:none!important}
+  body{background:#fff;color:#111;font-size:12px}
+  .app{max-width:100%;padding:0;margin:0}
   .grid-main{display:none}
   .quote-wrap{display:block;border:none;background:#fff;page-break-inside:avoid}
+  .quote-header{background:#f5f7fa;border-bottom:1px solid #ddd}
+  .quote-header h2{color:#111}
+  .quote-header .sub{color:#555}
+  .quote-body{padding:14px}
+  .qm-table th,.qm-table td,.asset-table td,.asset-table thead th{color:#111;border-color:#ddd}
+  .asset-table thead th{background:#f0f0f0}
 }
 </style>
 </head>
@@ -95,10 +116,10 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   </div>
 
   <div class="grid-main no-print">
-    <!-- LEFT -->
+    <!-- LEFT: INPUTS -->
     <div class="left-col">
 
-      <!-- Customer & Doc -->
+      <!-- Customer & Document -->
       <div class="card">
         <div class="card-title green">👤 ข้อมูลลูกค้า & เอกสาร</div>
         <div class="form-row">
@@ -155,25 +176,25 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         <div class="form-row c3">
           <div class="field mono">
             <label>ราคารถ Gross <span class="hint">(รวม VAT)</span></label>
-            <input id="gross" type="number" min="0" step="1" inputmode="numeric" value="0"/>
+            <input id="gross" type="number" min="0" step="1" inputmode="numeric" value="0" placeholder="เช่น 3,890,000"/>
           </div>
           <div class="field mono">
             <label>ส่วนลด <span class="hint">(−)</span></label>
-            <input id="discount" type="number" min="0" step="1" inputmode="numeric" value="0"/>
+            <input id="discount" type="number" min="0" step="1" inputmode="numeric" value="0" placeholder="เช่น 0 หรือ 50,000"/>
           </div>
           <div class="field mono">
             <label>Option <span class="hint">( + )</span></label>
-            <input id="optionPlus" type="number" min="0" step="1" inputmode="numeric" value="0"/>
+            <input id="optionPlus" type="number" min="0" step="1" inputmode="numeric" value="0" placeholder="เช่น 0 หรือ 20,000"/>
           </div>
         </div>
         <div class="form-row">
           <div class="field">
             <label>VAT <span class="hint">(%)</span></label>
-            <input id="vatPct" type="number" min="0" step="0.01" inputmode="decimal" value="7"/>
+            <input id="vatPct" type="number" min="0" step="0.01" inputmode="decimal" value="7" placeholder="เช่น 7.00"/>
           </div>
           <div class="field">
             <label>จำนวนปี <span class="hint">(Terms)</span></label>
-            <input id="years" type="number" min="0" step="0.01" inputmode="decimal" value="5"/>
+            <input id="years" type="number" min="0" step="0.01" inputmode="decimal" value="5" placeholder="เช่น 5.00"/>
           </div>
         </div>
       </div>
@@ -191,7 +212,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
           </div>
           <div class="field mono highlight">
             <label>ค่าเงินดาวน์</label>
-            <input id="downInput" type="number" min="0" step="0.01" inputmode="decimal" value="0"/>
+            <input id="downInput" type="number" min="0" step="0.01" inputmode="decimal" value="0" placeholder="จำนวนเงิน หรือ % ตามประเภท"/>
           </div>
           <div></div>
         </div>
@@ -209,7 +230,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
           <div></div>
         </div>
 
-        <!-- ฟิลด์ Balloon (ซ่อน/โชว์ตามเลือก) -->
+        <!-- ฟิลด์ Balloon (เริ่มซ่อน) -->
         <div id="balloonFields" style="display:none">
           <div class="form-row c3">
             <div class="field">
@@ -221,7 +242,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
             </div>
             <div class="field mono">
               <label>ค่า Balloon</label>
-              <input id="balloonInput" type="number" min="0" step="0.01" inputmode="decimal" value="0"/>
+              <input id="balloonInput" type="number" min="0" step="0.01" inputmode="decimal" value="0" placeholder="จำนวนเงิน หรือ % ตามประเภท"/>
             </div>
             <div></div>
           </div>
@@ -243,7 +264,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
           </div>
           <div class="field mono" id="flatRateBox">
             <label>Flat Rate <span class="hint">(% ต่อปี)</span></label>
-            <input id="flatRate" type="number" step="0.0001" inputmode="decimal" value="0"/>
+            <input id="flatRate" type="number" step="0.0001" inputmode="decimal" value="0" placeholder="เช่น 7.7800"/>
           </div>
         </div>
         <div class="form-row" id="irrRow" style="display:none">
@@ -253,6 +274,24 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
           </div>
           <div style="display:flex;align-items:flex-end;padding-bottom:1px">
             <button class="btn-blue btn-sm btn-full" id="btnSolveIRR" type="button">⚡ คำนวณ Flat จาก IRR</button>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="form-row c3">
+          <div class="field">
+            <label>ฐานค่าคอม</label>
+            <select id="commBaseChoice">
+              <option value="finance" selected>ยอดจัด</option>
+              <option value="interest">ดอกเบี้ยรวม</option>
+            </select>
+          </div>
+          <div class="field mono">
+            <label>% ค่าคอม</label>
+            <input id="commPct" type="number" min="0" step="0.01" inputmode="decimal" value="2.5"/>
+          </div>
+          <div class="field mono">
+            <label>Extra คอม <span class="hint">(บาท)</span></label>
+            <input id="commExtra" type="number" min="0" step="1" inputmode="numeric" value="0"/>
           </div>
         </div>
 
@@ -274,6 +313,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
             <button class="btn-ghost btn-sm" id="btnSolveExact" type="button">🎯 Exact Solve Target</button>
             <button class="btn-ghost btn-sm" id="btnSolve36000" type="button">🎯 Set 36,000 & Solve</button>
           </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px">ระหว่างคำนวณ ระบบจะบังคับโหมดดาวน์เป็น "จำนวนเงิน"</div>
         </div>
       </div>
 
@@ -284,19 +324,16 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         <button class="btn-danger" onclick="resetAll()">↺ รีเซ็ต</button>
       </div>
 
-    </div><!-- /left -->
+    </div><!-- /left-col -->
 
-    <!-- RIGHT -->
+    <!-- RIGHT: RESULTS -->
     <div class="right-col">
-
-      <!-- HERO -->
       <div class="pmt-hero">
         <div class="label">ค่างวด/เดือน (ปัดเศษ)</div>
         <div class="value" id="pmtRounded">—</div>
         <div class="sub">รวม VAT | <span id="months_hero">— งวด</span></div>
       </div>
 
-      <!-- RESULTS -->
       <div class="card">
         <div class="card-title green">ผลลัพธ์การคำนวณ</div>
         <div class="result-grid">
@@ -314,7 +351,6 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         </div>
       </div>
 
-      <!-- WS -->
       <div class="card" style="margin-top:12px">
         <div class="card-title amber">OWS Working Sheet</div>
         <table class="ws-table" id="ws_table">
@@ -327,7 +363,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
             <tr><td>Finance</td><td id="ws_fin_ex">—</td><td id="ws_fin_inc">—</td></tr>
             <tr><td>Monthly PMT</td><td id="ws_pmt_ex">—</td><td id="ws_pmt_inc">—</td></tr>
             <tr><td>Commission</td><td id="ws_comm_ex">—</td><td id="ws_comm_inc">—</td></tr>
-            <tr><td>Purchase Offer Price</td><td id="ws_po_ex">—</td><td id="ws_po_inc">—</td></tr>
+            <tr id="ws_row_po" style="display:none"><td>Purchase Offer Price</td><td id="ws_po_ex">—</td><td id="ws_po_inc">—</td></tr>
             <tr><td>RV (Dep+Balloon)</td><td id="ws_rv_ex">—</td><td id="ws_rv_inc">—</td></tr>
           </tbody>
         </table>
@@ -410,7 +446,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
       <div id="q_rateinfo" style="font-size:12px;color:var(--muted);margin:8px 0 4px">
         Interest Rate Type: Flat &nbsp;|&nbsp; Frequency: Monthly &nbsp;|&nbsp; Payment Method: Bank Transfer &nbsp;|&nbsp; End of Contract: Ownership is transferred to lessee &nbsp;|&nbsp; Guarantor: —
       </div>
-      <div id="q_subject" style="font-size:12px;color:var(--muted);margin-bottom:6px">* Subject to credit approval</div>
+      <div id="q_subject" style="font-size:12px;color:var(--muted);margin-bottom:12px">* Subject to credit approval</div>
 
       <!-- แสดงเฉพาะเมื่อมี Balloon -->
       <div id="q_diff" style="font-size:12px;color:#6b7280;margin-bottom:12px;display:none"></div>
@@ -430,7 +466,12 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
             — Lessee shall be responsible for the 1st insurance, Compulsory Insurance and Tax Fee through all contracts and the beneficiary has to be Thai ORIX Leasing Co., Ltd.
           </li>
           <li id="condition2">This offer is valid for 30 days from the quotation date. If this document is not signed and returned to us within the 30 days, we reserve the right to change the offer in this quotation.</li>
-          <li id="q_clause3">This offer includes a purchase option …</li>
+          <li id="q_clause3">This offer includes a purchase option. If you choose not to purchase the asset at the end of the lease period:
+            <ul style="margin-top:4px;padding-left:20px">
+              <li>a. The vehicle will be sold by us via auction to a 3rd party</li>
+              <li>b. If the sale price at auction is less than the purchase option price, you agree to pay us the difference between the sale price and purchase option price</li>
+            </ul>
+          </li>
         </ol>
       </div>
 
@@ -451,7 +492,6 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -466,13 +506,14 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 
 <script>
 /* ===== Formatters ===== */
-const fmt0=(v)=> (isFinite(v)? Number(Math.round(v)).toLocaleString('th-TH') : '-');      // 0 ทศนิยม
+const fmt0=(v)=> (isFinite(v)? Number(Math.round(v)).toLocaleString('th-TH') : '-');
 const fmt2=(v)=> (isFinite(v)? Number(v).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}):'-');
 const fmt4=(v)=> (isFinite(v)? Number(v).toLocaleString('th-TH',{minimumFractionDigits:4,maximumFractionDigits:4}):'-');
 const fmtNum=(v,d=2)=> (isFinite(v)? Number(v).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d}):'-');
 
 /* ===== Utils ===== */
 function getVal(id){const el=document.getElementById(id);if(!el)return null;if(el.type==='number')return parseFloat(el.value||'0');return el.value;}
+function setVal(id,v){const el=document.getElementById(id);if(el)el.value=v;}
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 function todayIso(){const d=new Date();const tz=d.getTimezoneOffset();const z=new Date(d.getTime()-tz*60*1000);return z.toISOString().slice(0,10);}
 function rate(nper,pmt,pv,fv=0,type=0,guess=0.01){
@@ -490,6 +531,11 @@ function rate(nper,pmt,pv,fv=0,type=0,guess=0.01){
   }
   return r;
 }
+
+/* กันเลื่อนล้อเมาส์แล้วค่ากระโดดบน number input */
+function preventWheelOnNumber(){ if(document.activeElement && document.activeElement.type==='number'){ document.activeElement.blur(); } }
+
+/* ===== UI behaviors ===== */
 function uiToggleMode(){
   const mode=getVal('mode');
   const irrRow=document.getElementById('irrRow');
@@ -502,27 +548,54 @@ function toggleBalloonUI(){
   const sec = document.getElementById('balloonFields');
   if(sec) sec.style.display = on ? '' : 'none';
 }
+
+/* ===== Language Switch for Quote ===== */
 function applyQuoteLang(lang){
   const isTH = (lang==='TH');
   setText('q_header', isTH ? 'บริษัท ไทยโอริกซ์ลีสซิ่ง จำกัด — ใบเสนอราคา' : 'THAI ORIX LEASING CO., LTD. — QUOTATION');
-  setText('q_subject', isTH ? '* เอกสารฉบับนี้อยู่ภายใต้การอนุมัติสินเชื่อ' : '* Subject to credit approval');
+  setText('q_sub',    isTH
+    ? 'สำนักงานใหญ่: 555 อาคาร รสา ทาวเวอร์ 2 ยูนิต 1801 ชั้น 18–19 ถนนพหลโยธิน เขตจตุจักร กรุงเทพฯ 10900 | โทร. 02-792-4500 แฟกซ์ 02-792-4501'
+    : 'Head Office: 555 Rasa Tower 2, Unit 1801 18th–19th Floor, Paholyothin Rd., Chatuchak, Bangkok 10900 | Tel. 02-792-4500 Fax. 02-792-4501');
+
+  setText('lbl_parties', isTH ? 'คู่สัญญา' : 'Parties');
+  setText('th_to',   isTH ? 'เรียน' : 'To');
+  setText('th_from', isTH ? 'จาก' : 'From');
+
+  setText('lbl_docinfo', isTH ? 'ข้อมูลเอกสาร' : 'Document Info');
+  setText('th_qno',  isTH ? 'เลขที่เอกสาร' : 'Quotation No');
+  setText('th_issue',isTH ? 'วันที่ออก' : 'Issue Date');
+  setText('th_exp',  isTH ? 'มีผลถึง' : 'Expiration');
+
+  setText('col_no', isTH ? 'ลำดับ' : 'No.');
+  setText('col_asset', isTH ? 'รายการทรัพย์สิน' : 'Asset');
+  setText('col_list',  isTH ? 'ราคารวมภาษี' : 'List Price\n(Incl. VAT)');
+  setText('col_dep',   isTH ? 'เงินมัดจำ (รวมภาษี)' : 'Deposit\n(Incl. VAT)');
+  setText('col_term',  isTH ? 'ระยะเวลา (เดือน)' : 'Term\n(Month)');
+  setText('col_pmt_ex',isTH ? 'รายเดือน (ไม่รวมภาษี)' : 'Monthly\n(Excl. VAT)');
+  setText('col_vat',   isTH ? 'ภาษีมูลค่าเพิ่ม' : 'VAT');
+  setText('col_pmt_inc',isTH ? 'รายเดือน (รวมภาษี)' : 'Monthly\n(Incl. VAT)');
+  setText('col_purchase',isTH ? 'ราคาซื้อเมื่อสิ้นสุด (รวมภาษี)' : 'Purchase Price\n(Incl. VAT)');
+  setText('col_qty',   isTH ? 'จำนวน' : 'Qty');
+  setText('col_color', isTH ? 'สี' : 'Color');
+
+  setText('q_intro', isTH
+    ? 'บริษัทฯ ขอขอบคุณที่ท่านให้ความไว้วางใจ เราขอเสนอราคาดังต่อไปนี้'
+    : 'Thank you for your trust in our service. We are pleased to offer the following prices for our service.');
 }
 
 /* ===== Core Calculation ===== */
 function recalc(){
-  const PURCHASE_OPTION_INC = 1070; // *** ตรึงไว้ในโค้ด ตามที่ร้องขอ ***
+  // ค่า Purchase Option (รวม VAT) — ล็อกในโค้ด
+  const PURCHASE_OPTION_INC = 1070;
 
-  const gross=getVal('gross'), discount=getVal('discount'), optionPlus=getVal('optionPlus'); 
-  const vatPct=getVal('vatPct')/100;
-  const downType=getVal('downType'), downInput=getVal('downInput');
-  const balloonEnable=(getVal('balloonEnable')==='true'), balloonType=getVal('balloonType'), balloonInput=getVal('balloonInput');
-  const flatRate=getVal('flatRate')/100;
-  const years=Math.max(0,getVal('years')); const months=Math.trunc(years*12);
+  const gross=getVal('gross');const discount=getVal('discount');const optionPlus=getVal('optionPlus');const vatPct=getVal('vatPct')/100;
+  const downType=getVal('downType');const downInput=getVal('downInput');
+  const balloonEnable=getVal('balloonEnable')==='true';const balloonType=getVal('balloonType');const balloonInput=getVal('balloonInput');
+  const mode=getVal('mode');let flatRate=getVal('flatRate')/100;const years=Math.max(0,getVal('years'));const months=Math.trunc(years*12);
 
   const net=gross-discount+optionPlus;
-  const downBaht=(downType==='percent')? net*(downInput/100) : downInput;
-  const balloonBaht=balloonEnable ? ((balloonType==='percent')? net*(balloonInput/100) : balloonInput) : 0;
-
+  const downBaht=(downType==='percent')?net*(downInput/100):downInput;
+  const balloonBaht=balloonEnable?((balloonType==='percent')?net*(balloonInput/100):balloonInput):0;
   const hasDown = downBaht > 1e-10;
   const hasBalloon = balloonBaht > 1e-10;
 
@@ -531,29 +604,27 @@ function recalc(){
 
   const totalInterest=finMinusBalloon*flatRate*years;
   const pmtInc=(months>0)?(finMinusBalloon+totalInterest)/months:0;
-  const pmtEx=pmtInc/(1+vatPct);
   const pmtRounded=Math.round(pmtInc);
 
-  const commBaseChoice=getVal('commBaseChoice'); const commPct=getVal('commPct')/100; const commExtra=getVal('commExtra');
+  const commBaseChoice=getVal('commBaseChoice');const commPct=getVal('commPct')/100;const commExtra=getVal('commExtra');
   const commBaseNum=(commBaseChoice==='interest')?totalInterest:finance;
   const commission=Math.round(commBaseNum*commPct+Number(commExtra||0));
 
-  // IRR/TR (คิดบน Ex. VAT)
+  const pmtEx=pmtInc/(1+vatPct);
   const pvCompany=-(finance+commission)/(1+vatPct);
   const pvCustomer= -finance/(1+vatPct);
   const fvEx=balloonBaht/(1+vatPct);
-  const rComp=(months>0 && pmtEx>0)? rate(months,pmtEx,pvCompany,fvEx,0,0.01):0;
-  const rCust=(months>0 && pmtEx>0)? rate(months,pmtEx,pvCustomer,fvEx,0,0.01):0;
-  const irrYear=rComp*12, trCustYear=rCust*12;
+  const rComp=(months>0 && pmtEx>0)?rate(months,pmtEx,pvCompany,fvEx,0,0.01):0;
+  const rCust=(months>0 && pmtEx>0)?rate(months,pmtEx,pvCustomer,fvEx,0,0.01):0;
+  const irrYear=rComp*12; const trCustYear=rCust*12;
 
-  // Ex. VAT view
-  const netEx=net/(1+vatPct), downEx=downBaht/(1+vatPct), finEx=finance/(1+vatPct), commEx=commission/(1+vatPct), rvEx=(downBaht+balloonBaht)/(1+vatPct);
+  const netEx=net/(1+vatPct),downEx=downBaht/(1+vatPct),finEx=finance/(1+vatPct),commEx=commission/(1+vatPct),rvEx=(downBaht+balloonBaht)/(1+vatPct);
 
-  // Purchase Price (Incl./Ex.) สำหรับเอกสาร
+  // Purchase Price (แสดงบนเอกสาร)
   const purchasePriceInc = (hasDown || hasBalloon) ? (downBaht + balloonBaht) : PURCHASE_OPTION_INC;
   const purchasePriceEx  = purchasePriceInc/(1+vatPct);
 
-  /* ===== Write to UI ===== */
+  /* ===== Write Results ===== */
   setText('pmtRounded', fmt0(pmtRounded));
   setText('months_hero', months+' งวด');
 
@@ -569,41 +640,46 @@ function recalc(){
   setText('irr',             isFinite(irrYear)? (irrYear*100).toFixed(4)+' %':'-');
   setText('trCustomer',      isFinite(trCustYear)? (trCustYear*100).toFixed(4)+' %':'-');
 
-  // WS
-  document.getElementById('ws_net_ex').textContent  = fmt4(netEx);
-  document.getElementById('ws_net_inc').textContent = fmt2(net);
-  document.getElementById('ws_dep_ex').textContent  = fmt4(downEx);
-  document.getElementById('ws_dep_inc').textContent = fmt2(downBaht);
-  document.getElementById('ws_fin_ex').textContent  = fmt4(finEx);
-  document.getElementById('ws_fin_inc').textContent = fmt2(finance);
-  document.getElementById('ws_pmt_ex').textContent  = fmt4(pmtEx);
-  document.getElementById('ws_pmt_inc').textContent = fmt0(pmtInc);
-  document.getElementById('ws_comm_ex').textContent = fmt4(commEx);
-  document.getElementById('ws_comm_inc').textContent= fmt2(commission);
-  document.getElementById('ws_po_ex').textContent   = fmt4(purchasePriceEx);
-  document.getElementById('ws_po_inc').textContent  = fmt2(purchasePriceInc);
-  document.getElementById('ws_rv_ex').textContent   = fmt4(rvEx);
-  document.getElementById('ws_rv_inc').textContent  = fmt2(downBaht+balloonBaht);
+  // WS → Ex. VAT = 4 ตำแหน่ง / PMT Inc = จำนวนเต็ม
+  setText('ws_net_ex',  fmt4(netEx));  setText('ws_net_inc', fmt2(net));
+  setText('ws_dep_ex',  fmt4(downEx)); setText('ws_dep_inc', fmt2(downBaht));
+  setText('ws_fin_ex',  fmt4(finEx));  setText('ws_fin_inc', fmt2(finance));
+  setText('ws_pmt_ex',  fmt4(pmtEx));  setText('ws_pmt_inc', fmt0(pmtInc));
+  setText('ws_comm_ex', fmt4(commEx)); setText('ws_comm_inc', fmt2(commission));
+  // Purchase Offer Price: แสดงเฉพาะ Down=0 & Balloon=0
+  const poRow=document.getElementById('ws_row_po');
+  if(!hasDown && !hasBalloon){
+    poRow.style.display='';
+    setText('ws_po_ex',  fmt4(purchasePriceEx));
+    setText('ws_po_inc', fmt2(purchasePriceInc));
+  }else{
+    poRow.style.display='none';
+    setText('ws_po_ex','—'); setText('ws_po_inc','—');
+  }
+  setText('ws_rv_ex',   fmt4(rvEx));   setText('ws_rv_inc', fmt2(downBaht+balloonBaht));
 
-  // Quote numbers
-  const custName=getVal('custName'), fromName=getVal('fromName'), quotationNo=getVal('quotationNo'), issueDate=getVal('issueDate');
-  const validDays=Math.max(0,getVal('validDays')); const assetName=getVal('assetName'); const assetColor=getVal('assetColor'); const assetQty=Math.max(1,getVal('assetQty'));
-  const issue=issueDate||todayIso(); const exp=new Date(issue); exp.setDate(exp.getDate()+validDays);
+  // Quote
+  const custName=getVal('custName');const fromName=getVal('fromName');const quotationNo=getVal('quotationNo');const issueDate=getVal('issueDate');
+  const validDays=Math.max(0,getVal('validDays'));const assetName=getVal('assetName');const assetColor=getVal('assetColor');const assetQty=Math.max(1,getVal('assetQty'));
+  const issue=issueDate||todayIso();const exp=new Date(issue);exp.setDate(exp.getDate()+validDays);
   const expIso=new Date(exp.getTime()-exp.getTimezoneOffset()*60000).toISOString().slice(0,10);
   const pmtVAT=pmtInc-pmtEx;
-  const lang=document.getElementById('quoteLang')?.value || 'EN'; const isTH=(lang==='TH');
+  const lang=document.getElementById('quoteLang')?.value || 'EN';
+  const isTH = (lang==='TH');
   const expText = isTH ? `${expIso} (${validDays} วัน)` : `${expIso} (${validDays} days)`;
 
   setText('q_to',custName); setText('q_from',fromName); setText('q_no',quotationNo||'-'); setText('q_issue',issue); setText('q_expire',expText);
   setText('q_asset',assetName); setText('q_list',fmt2(gross)); setText('q_deposit',fmt2(downBaht));
   setText('q_term',months.toString());
-  document.getElementById('q_pmt_ex').textContent  = fmt4(pmtEx);
-  document.getElementById('q_vat').textContent     = fmt2(pmtVAT);   // VAT = 2 ตำแหน่ง
-  document.getElementById('q_pmt_inc').textContent = fmt0(pmtInc);
-  document.getElementById('q_purchase').textContent= fmt2(purchasePriceInc);
+
+  // Quotation: Ex. VAT = 4 ตำแหน่ง / VAT = 2 ตำแหน่ง / Incl. VAT = จำนวนเต็ม
+  setText('q_pmt_ex', fmt4(pmtEx));
+  setText('q_vat',    fmt2(pmtVAT));
+  setText('q_pmt_inc',fmt0(pmtInc));
+  setText('q_purchase',fmt2(purchasePriceInc));
   setText('q_qty',assetQty.toString()); setText('q_color',assetColor||'-'); setText('q_cust_sign',custName);
 
-  // Difference at end (เฉพาะกรณีมี Balloon) = purchase option price − deposit → ใช้ Balloon − Deposit
+  // Difference at end … (เฉพาะมี Balloon)
   const diffEndInc = hasBalloon ? Math.max(0, balloonBaht - downBaht) : 0;
   const qDiff = document.getElementById('q_diff');
   if(hasBalloon){
@@ -612,29 +688,27 @@ function recalc(){
       ? `ส่วนต่างชำระเมื่อสิ้นสุดสัญญา (เฉพาะกรณีมี Balloon): <b>${fmt2(diffEndInc)}</b> บาท (รวมภาษีมูลค่าเพิ่ม)`
       : `Difference at end (Balloon only): <b>${fmt2(diffEndInc)}</b> Baht (Incl. VAT)`;
   }else{
-    qDiff.style.display='none'; qDiff.innerHTML='';
+    qDiff.style.display='none';
+    qDiff.innerHTML='';
   }
 
-  // ===== Details of Condition (ตามสูตรที่ส่งมา) =====
+  // ===== Details of Condition (ตามสูตร 3 กรณี) =====
   const c1 = document.getElementById('condition1');
   if(isTH){
     if(hasBalloon){
-      // มี Balloon → 3 บรรทัด + บรรทัดส่วนต่าง
       c1.innerHTML =
-        `ผู้เช่าจะต้องชำระเงินมัดจำจำนวน ${fmtNum(downBaht,2)} บาท (รวมภาษีมูลค่าเพิ่ม) ให้แก่ผู้ให้เช่า<br/>`+
-        `เงินมัดจำดังกล่าวจะถือเป็นส่วนหนึ่งของราคาซื้อ และจะถูกนำไปหักจากราคาซื้อโดยอัตโนมัติ<br/>`+
+        `ผู้เช่าจะต้องชำระเงินมัดจำจำนวน ${fmtNum(downBaht,2)} บาท (รวมภาษีมูลค่าเพิ่ม) ให้แก่ผู้ให้เช่า <br/>`+
+        `เงินมัดจำดังกล่าวจะถือเป็นส่วนหนึ่งของราคาซื้อ และจะถูกนำไปหักจากราคาซื้อโดยอัตโนมัติ <br/>`+
         `เมื่อสัญญาสิ้นสุดลง ผู้เช่าจะต้องชำระส่วนต่างระหว่างราคาซื้อและเงินมัดจำให้แก่ผู้ให้เช่า จำนวน ${fmtNum(diffEndInc,2)} บาท (รวมภาษีมูลค่าเพิ่ม).`;
     } else if(hasDown && !hasBalloon){
-      // มีดาวน์ ไม่มี Balloon
       c1.innerHTML =
-        `ผู้เช่าจะต้องชำระเงินมัดจำจำนวน ${fmtNum(downBaht,2)} บาท (รวมภาษีมูลค่าเพิ่ม) ให้แก่ผู้ให้เช่า โดยถือเป็นราคาซื้อ ณ วันสิ้นสุดระยะเวลาเช่า<br/>`+
+        `ผู้เช่าจะต้องชำระเงินมัดจำจำนวน ${fmtNum(downBaht,2)} บาท (รวมภาษีมูลค่าเพิ่ม) ให้แก่ผู้ให้เช่า โดยถือเป็นราคาซื้อ ณ วันสิ้นสุดระยะเวลาเช่า <br/>`+
         `เงินมัดจำดังกล่าวจะถูกนำไปหักจากราคาซื้อโดยอัตโนมัติเมื่อสัญญาสิ้นสุดลง.`;
     } else {
-      // ไม่มีดาวน์ ไม่มี Balloon → ใช้ 1,070
       c1.innerHTML =
         `ผู้เช่าจะต้องชำระเงินมัดจำจำนวน ${fmtNum(PURCHASE_OPTION_INC,2)} บาท (รวมภาษีมูลค่าเพิ่ม) ให้แก่ผู้ให้เช่า โดยถือเป็นราคาซื้อ ณ วันสิ้นสุดระยะเวลาเช่า.`;
     }
-  }else{
+  } else {
     if(hasBalloon){
       c1.innerHTML =
         `- Lessee shall pay ${fmtNum(downBaht,2)} Baht (Inc. VAT) as a deposit to Lessor. `+
@@ -649,42 +723,15 @@ function recalc(){
         `- Lessee shall pay the deposit ${fmtNum(PURCHASE_OPTION_INC,2)} Baht (Inc. VAT) to Lessor as a Purchase Price at the end of the Lease Period.`;
     }
   }
-
-  // ===== ข้อ 3: เงื่อนไขสิทธิในการซื้อ → ใส่ตัวเลขมัดจำตามกรณี =====
-  const q3 = document.getElementById('q_clause3');
-  const poForClause = hasBalloon ? balloonBaht : (hasDown ? downBaht : PURCHASE_OPTION_INC);
-  if(isTH){
-    q3.innerHTML = 
-      `ข้อเสนอนี้รวมสิทธิในการซื้อทรัพย์สิน โดยกำหนดเงินจำนวน ${fmtNum(poForClause,2)} บาท (รวมภาษีมูลค่าเพิ่ม) เป็นเงินมัดจำให้แก่ผู้ให้เช่า `+
-      `ในกรณีที่ผู้เช่าปฏิเสธไม่ซื้อรถยนต์เมื่อสิ้นสุดสัญญา:`+
-      `<ul style="margin-top:4px;padding-left:20px">`+
-        `<li>a. บริษัทจะนำรถยนต์ออกจำหน่ายผ่านการประมูลให้แก่บุคคลภายนอก</li>`+
-        `<li>b. หากราคาขายจากการประมูลต่ำกว่าราคาสิทธิซื้อที่ตกลงกันไว้ ผู้เช่ายินยอมชำระที่จะส่วนต่างระหว่างราคาขายจากการประมูลกับราคาสิทธิซื้อให้แก่บริษัท</li>`+
-      `</ul>`;
-  }else{
-    q3.innerHTML =
-      `This offer includes a purchase option of ${fmtNum(poForClause,2)} Baht (Inc. VAT) as a deposit to Lessor. `+
-      `If you choose not to purchase the asset at the end of the lease period:`+
-      `<ul style="margin-top:4px;padding-left:20px">`+
-        `<li>a. The vehicle will be sold by us via auction to a 3rd party</li>`+
-        `<li>b. If the sale price at auction is less than the purchase option price, you agree to pay us the difference between the sale price and purchase option price</li>`+
-      `</ul>`;
-  }
-
-  // Policy Warnings
-  const warnBox = document.getElementById('policyWarnings'); warnBox.innerHTML='';
-  const downPct = net>0 ? (downBaht/net) : 0; const balloonPct = net>0 ? (balloonBaht/net) : 0;
-  if(balloonPct > 0.30){ const s=document.createElement('span'); s.className='pill warn'; s.textContent='Warning: Balloon > 30% of Net'; warnBox.appendChild(s); }
-  if((downPct + balloonPct) > 1){ const s=document.createElement('span'); s.className='pill err'; s.textContent='Risk: Down + Balloon > 100% of Net'; warnBox.appendChild(s); }
 }
 
-/* ===== IRR Flat Solve ===== */
+/* ===== Goal Seek: solve Flat from IRR ===== */
 function solveFlatFromIRR(){
   const mode=getVal('mode'); if(mode!=='IRR') return;
   const irrTargetPct=getVal('irrTargetPct'); const irrTarget=irrTargetPct/100; const vatPct=getVal('vatPct')/100;
-  const gross=getVal('gross'), discount=getVal('discount'), optionPlus=getVal('optionPlus'), net=gross-discount+optionPlus;
-  const downType=getVal('downType'), downInput=getVal('downInput'); const downBaht=(downType==='percent')? net*(downInput/100) : downInput;
-  const balloonEnable=(getVal('balloonEnable')==='true'); const balloonType=getVal('balloonType'); const balloonInput=getVal('balloonInput');
+  const gross=getVal('gross'); const discount=getVal('discount'); const optionPlus=getVal('optionPlus'); const net=gross-discount+optionPlus;
+  const downType=getVal('downType'); const downInput=getVal('downInput'); const downBaht=(downType==='percent')? net*(downInput/100) : downInput;
+  const balloonEnable=getVal('balloonEnable')==='true'; const balloonType=getVal('balloonType'); const balloonInput=getVal('balloonInput');
   const balloonBaht=balloonEnable ? ((balloonType==='percent')? net*(balloonInput/100) : balloonInput) : 0;
   const finance=Math.max(0, net-downBaht);
   const years=Math.max(0, getVal('years')); const months=Math.trunc(years*12);
@@ -715,7 +762,7 @@ function solveFlatFromIRR(){
     }
     mid=(a+b)/2;
   }
-  document.getElementById('flatRate').value=(mid*100).toFixed(4); recalc();
+  setVal('flatRate',(mid*100).toFixed(4)); recalc();
 }
 
 /* ===== Goal Seek (เดิม) ===== */
@@ -724,12 +771,11 @@ function solveDownFromMonthly(){
   const step=Math.max(1, Math.floor(getVal('downStep')||1));
   if(!(target>0)) return alert('กรุณากรอกเป้าหมายค่างวด/เดือน (รวม VAT)');
 
-  // บังคับใช้ "จำนวนเงิน"
-  document.getElementById('downType').value='amount';
+  setVal('downType','amount');
 
-  const gross=getVal('gross'), discount=getVal('discount'), optionPlus=getVal('optionPlus');
+  const gross=getVal('gross'); const discount=getVal('discount'); const optionPlus=getVal('optionPlus');
   const net=gross-discount+optionPlus;
-  const balloonEnable=(getVal('balloonEnable')==='true'); const balloonType=getVal('balloonType'); const balloonInput=getVal('balloonInput');
+  const balloonEnable=getVal('balloonEnable')==='true'; const balloonType=getVal('balloonType'); const balloonInput=getVal('balloonInput');
   const balloonBaht=balloonEnable ? ((balloonType==='percent')? net*(balloonInput/100) : balloonInput) : 0;
   const years=Math.max(0, getVal('years')); const months=Math.trunc(years*12);
 
@@ -758,67 +804,74 @@ function solveDownFromMonthly(){
     const diff=Math.abs(lease-target);
     if(diff<bestDiff || (diff===bestDiff && m<best)){ best=m; bestDiff=diff; }
   }
-  document.getElementById('downInput').value = String(best);
+  setVal('downInput', String(best));
+  setVal('downType','amount');
   recalc();
   alert(`✅ สำเร็จ\nเงินดาวน์ ≈ ${best.toLocaleString('th-TH')} บาท\nค่างวด/เดือน (ปัด) ≈ ${monthlyFromDown(best).toLocaleString('th-TH')} บาท`);
 }
 
 /* ===== Exact Solver ===== */
 function solveDownExactMonthly(target){
-  const gross=getVal('gross'), discount=getVal('discount'), optionPlus=getVal('optionPlus');
-  const net=gross-discount+optionPlus;
+  const gross = getVal('gross'), discount = getVal('discount'), optionPlus = getVal('optionPlus');
+  const net = gross - discount + optionPlus;
 
-  const years=Math.max(0,getVal('years'));
-  const months=Math.trunc(years*12);
-  const flatRate=getVal('flatRate')/100;
+  const years = Math.max(0, getVal('years'));
+  const months = Math.trunc(years * 12);
+  const flatRate = getVal('flatRate') / 100;
 
-  const balloonEnable=(getVal('balloonEnable')==='true');
-  const balloonType=getVal('balloonType');
-  const balloonInput=getVal('balloonInput');
-  const balloonBaht=balloonEnable?((balloonType==='percent')?net*(balloonInput/100):balloonInput):0;
+  const balloonEnable = getVal('balloonEnable') === 'true';
+  const balloonType   = getVal('balloonType');
+  const balloonInput  = getVal('balloonInput');
+  const balloonBaht   = balloonEnable ? ((balloonType === 'percent') ? net * (balloonInput/100) : balloonInput) : 0;
 
-  if(months<=0) return alert('กรุณากำหนดจำนวนปี (Terms) ให้ถูกต้อง');
+  if (months <= 0) { alert('กรุณากำหนดจำนวนปี (Terms) ให้ถูกต้อง'); return; }
 
   const denom = (1 + flatRate * years);
   const desiredFinMinusBalloon = target * months / denom;
   let downExact = net - balloonBaht - desiredFinMinusBalloon;
 
   downExact = Math.max(0, Math.min(downExact, net));
-  document.getElementById('downType').value='amount';
-  document.getElementById('downInput').value= String(Math.round(downExact));
+  setVal('downType','amount');
+  setVal('downInput', String(Math.round(downExact)));
   recalc();
 
-  // refine ให้ค่างวด (ปัด) = target
   function getPmtIncNow(){
-    const net=getVal('gross')-getVal('discount')+getVal('optionPlus');
-    const downType=getVal('downType'), di=getVal('downInput');
-    const be=(getVal('balloonEnable')==='true'), bt=getVal('balloonType'), bi=getVal('balloonInput');
-    const bb=be?((bt==='percent')? net*(bi/100):bi):0;
-    const months=Math.trunc(getVal('years')*12), fr=getVal('flatRate')/100, yrs=getVal('years');
-    const downBaht=(downType==='percent')? net*(di/100) : di;
+    const gross=getVal('gross'), discount=getVal('discount'), optionPlus=getVal('optionPlus');
+    const net=gross-discount+optionPlus;
+    const downType=getVal('downType'), downInput=getVal('downInput');
+    const balloonEnable=getVal('balloonEnable')==='true', balloonType=getVal('balloonType'), balloonInput=getVal('balloonInput');
+    const balloonBaht=balloonEnable?((balloonType==='percent')?net*(balloonInput/100):balloonInput):0;
+    const years=Math.max(0, getVal('years')), months=Math.trunc(years*12);
+    const flatRate=getVal('flatRate')/100;
+
+    const downBaht=(downType==='percent')? net*(downInput/100) : downInput;
     const finance=Math.max(0, net-downBaht);
-    const fmb=Math.max(0, finance-bb);
-    const total=fmb*fr*yrs; return (months>0)? (fmb+total)/months : 0;
+    const finMinusBalloon=Math.max(0, finance-balloonBaht);
+    const totalInterest=finMinusBalloon*flatRate*years;
+    const pmtInc=(months>0)? (finMinusBalloon+totalInterest)/months : 0;
+    return pmtInc;
   }
+
   let downNow = Math.round(downExact);
-  let pNow = getPmtIncNow();
+  let pmtNow = getPmtIncNow();
   let safety = 0;
-  const slope = - (1 + flatRate*years) / months;
+  const slope = - (1 + flatRate*years) / months; // dpmt/ddown
 
   while (safety < 20) {
-    const r = Math.round(pNow);
-    if (r === target) break;
-    const diff = pNow - target;
+    const pmtRounded = Math.round(pmtNow);
+    if (pmtRounded === target) break;
+
+    const diff = pmtNow - target;
     let step = diff / slope;
     if (!isFinite(step)) step = 0;
-    step = Math.max((diff>0?1:-1), Math.round(step));
-    step = Math.sign(step)*Math.min(Math.abs(step), 10);
+    step = Math.max( (diff>0?1:-1), Math.round(step) );
+    step = Math.sign(step) * Math.min(Math.abs(step), 10);
 
     downNow += step;
     downNow = Math.max(0, Math.min(downNow, Math.round(net)));
-    document.getElementById('downInput').value= String(downNow);
+    setVal('downInput', String(downNow));
     recalc();
-    pNow = getPmtIncNow();
+    pmtNow = getPmtIncNow();
     safety++;
   }
 
@@ -840,12 +893,18 @@ function resetAll(){
   document.getElementById('flatRate').value=0;
   document.getElementById('years').value=5;
   document.getElementById('irrTargetPct').value=5.75;
+
+  // ช่องค่าคอม — คงอยู่และตั้งค่าเริ่มต้น
+  document.getElementById('commBaseChoice').value='finance';
+  document.getElementById('commPct').value=2.5;
+  document.getElementById('commExtra').value=0;
+
   document.getElementById('custName').value='Test';
   document.getElementById('fromName').value='Jakkrawut  Naksomphan';
   document.getElementById('quotationNo').value='';
   document.getElementById('issueDate').value='';
   document.getElementById('validDays').value=30;
-  document.getElementById('assetName').value='Zeekr 009 6Seat';
+  document.getElementById('assetName').value='ระบุรุ่นรถ';
   document.getElementById('assetColor').value='';
   document.getElementById('assetQty').value=1;
   document.getElementById('targetMonthlyInc').value='';
@@ -864,6 +923,7 @@ function downloadJSON(){
   a.download=`quotation-params_${y}${m}${d}.json`; a.click(); URL.revokeObjectURL(a.href);
 }
 
+/* ===== Export Excel (.xls via HTML) ===== */
 function exportExcel(){
   const ws = document.getElementById('ws_table').outerHTML;
   const quote = document.getElementById('quoteSection').outerHTML;
@@ -904,7 +964,22 @@ document.addEventListener('input',(e)=>{
 });
 window.addEventListener('DOMContentLoaded', ()=>{
   if(!document.getElementById('issueDate').value){ document.getElementById('issueDate').value = todayIso(); }
-  applyQuoteLang('EN'); uiToggleMode(); toggleBalloonUI(); recalc();
+  applyQuoteLang('EN');
+  uiToggleMode();
+  toggleBalloonUI();
+  recalc();
+
+  // กันล้อเมาส์/trackpad เลื่อนแล้วค่า number เปลี่ยน
+  document.addEventListener('wheel', preventWheelOnNumber, {passive:false});
+
+  document.getElementById('btnSolveIRR').addEventListener('click', solveFlatFromIRR);
+  document.getElementById('btnSolveDown').addEventListener('click', solveDownFromMonthly);
+  document.getElementById('btnSolveExact').addEventListener('click', ()=>{
+    const v = parseFloat(document.getElementById('targetMonthlyInc').value||'0');
+    if(!(v>0)) return alert('กรุณากรอกเป้าหมายค่างวด/เดือน (รวม VAT)');
+    solveDownExactMonthly(v);
+  });
+  document.getElementById('btnSolve36000').addEventListener('click', solve36000);
 });
 </script>
 </body>
