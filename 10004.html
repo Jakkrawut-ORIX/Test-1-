@@ -144,6 +144,62 @@ button{font-family:var(--font);cursor:pointer;font-size:13px;font-weight:600;bor
   .qm-table th,.qm-table td,.asset-table td,.asset-table thead th{color:#111;border-color:#ddd}
   .asset-table thead th{background:#f0f0f0}
 }
+
+  <!-- === Easy Colors Override (วางหลัง <style> เดิม) === -->
+:root{
+  /* พื้นหลัง/พื้นผิวที่สว่างขึ้นและคอนทราสต์นุ่มตา */
+  --bg:#f9fafb;
+  --surface:#ffffff;
+  --surface2:#ffffff;
+  --surface3:#f5f7fb;
+
+  /* เส้นขอบที่จางลงแต่ยังคุมกริดอยู่ */
+  --border:#e7eaf1;
+  --border2:#d9dee8;
+
+  /* ตัวอักษร: สีหลักเดิม + muted เข้มขึ้นเล็กน้อยให้อ่านง่าย */
+  --txt:#0f172a;
+  --muted:#6b7280;
+  --muted2:#475569;
+
+  /* โทนสีหลัก/สถานะ ให้เรียบและสบายตาขึ้น */
+  --blue:#2563eb;    --blue-dim:#eef3ff;
+  --green:#16a34a;   --green-dim:#effaf3;
+  --amber:#b45309;   --amber-dim:#fff4e5;
+  --red:#b91c1c;     --red-dim:#feecec;
+}
+
+/* Hero ด้านขวา: ไล่เฉดจาง ๆ ไม่แย่งสายตา */
+.pmt-hero{
+  background:linear-gradient(135deg,#f3faf4,#ffffff);
+  border:1px solid rgba(22,163,74,.18);
+}
+
+/* Pill แจ้งเตือน: โทนพาสเทลอ่านง่าย */
+.pill.ok{   background:#ecfdf5; color:#047857 }
+.pill.warn{ background:#fff7ed; color:#b45309 }
+.pill.err{  background:#fef2f2; color:#b91c1c }
+
+/* ปุ่ม: โทนเรียบ-คอนทราสต์ดี และ hover ไม่ฉูดฉาด */
+.btn-primary{background:#16a34a;color:#08220f}
+.btn-primary:hover{background:#128a3f}
+.btn-blue{background:#2563eb;color:#f8fbff}
+.btn-blue:hover{background:#1d4ed8}
+.btn-amber{background:#b45309;color:#fff}
+.btn-amber:hover{background:#9a3f06}
+.btn-ghost{background:#fff;color:#475569;border:1px solid var(--border)}
+.btn-ghost:hover{color:#0f172a;border-color:var(--border2)}
+
+/* อินพุต: วงโฟกัสนุ่มขึ้น แต่ยังเห็นชัด */
+.field input:focus,.field select:focus{
+  border-color:#2563eb;
+  box-shadow:0 0 0 3px rgba(37,99,235,.15);
+  background:#fff;
+}
+
+/* แถบเล็กหน้า title ให้เป็นโทนกลาง ลดความหลากสี */
+.card-title::before{background:#dbe2ef}
+
 </style>
 </head>
 <body>
