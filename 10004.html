@@ -30,6 +30,7 @@ html,body{background:var(--bg);color:var(--txt);font-family:var(--font);font-siz
 
 /* GRID */
 .grid-main{display:grid;grid-template-columns:1fr 380px;gap:20px}
+.col-full{grid-column:1/-1}
 @media(max-width:900px){.grid-main{grid-template-columns:1fr}}
 
 /* CARDS */
@@ -46,6 +47,7 @@ html,body{background:var(--bg);color:var(--txt);font-family:var(--font);font-siz
 /* FORM */
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .form-row.c3{grid-template-columns:1fr 1fr 1fr}
+.form-row.c1{grid-template-columns:1fr}
 .field{display:flex;flex-direction:column;gap:5px}
 .field label{font-size:11px;color:var(--muted2);font-weight:600;letter-spacing:.2px}
 .field label span.hint{color:var(--muted);font-weight:400}
@@ -81,7 +83,44 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .ws-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden}
 .ws-table th{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface3)}
 .ws-table td{padding:7px 8px;font-size:12px;font-family:var(--mono);border-bottom:1px solid var(--border)}
+.ws-table tr:last-child td{border-bottom:none}
 .ws-table td:not(:first-child){text-align:right}
+
+/* GOAL SEEK SECTION */
+.goal-seek-section{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rad);padding:12px;margin-top:8px}
+.goal-seek-section .gs-title{font-size:11px;font-weight:800;color:var(--amber);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+button{font-family:var(--font);cursor:pointer;font-size:13px;font-weight:600;border:none;border-radius:var(--rad-sm);padding:10px 16px;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--green);color:#07190b}
+.btn-primary:hover{background:#12853b}
+.btn-blue{background:var(--blue);color:#f7fbff}
+.btn-blue:hover{background:#0a57a8}
+.btn-amber{background:var(--amber);color:#fff}
+.btn-amber:hover{background:#be6a05}
+.btn-ghost{background:#fff;color:var(--muted2);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--txt);border-color:var(--border2)}
+.btn-danger{background:var(--red);color:#fff;border:1px solid rgba(185,28,28,.2)}
+.btn-danger:hover{background:#991b1b}
+.btn-sm{padding:7px 12px;font-size:12px}
+.btn-full{width:100%;display:block;text-align:center}
+
+/* QUOTE PRINT SECTION */
+.quote-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);overflow:hidden;margin-top:16px}
+.quote-header{background:var(--surface3);padding:16px;border-bottom:1px solid var(--border)}
+.quote-header h2{font-family:var(--serif);font-size:20px;font-weight:700}
+.quote-header .sub{font-size:11px;color:var(--muted);margin-top:3px}
+.quote-body{padding:16px}
+.quote-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.qm-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.qm-table th{font-size:11px;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);background:var(--surface3)}
+.qm-table td{padding:7px 8px;font-size:13px;border-bottom:1px solid var(--border)}
+.asset-table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px;background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.asset-table thead th{background:var(--surface3);padding:8px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;text-align:left;border-bottom:1px solid var(--border)}
+.asset-table td{padding:10px 8px;border-bottom:1px solid var(--border)}
+.asset-table .num{text-align:right;font-family:var(--mono)}
+.asset-table .ctr{text-align:center}
 
 /* POLICY WARNING */
 #policyWarnings{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
@@ -362,7 +401,6 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
             <tr><td>Finance</td><td id="ws_fin_ex">—</td><td id="ws_fin_inc">—</td></tr>
             <tr><td>Monthly PMT</td><td id="ws_pmt_ex">—</td><td id="ws_pmt_inc">—</td></tr>
             <tr><td>Commission</td><td id="ws_comm_ex">—</td><td id="ws_comm_inc">—</td></tr>
-            <tr id="ws_row_po" style="display:none"><td>Purchase Offer Price</td><td id="ws_po_ex">—</td><td id="ws_po_inc">—</td></tr>
             <tr><td>RV (Dep+Balloon)</td><td id="ws_rv_ex">—</td><td id="ws_rv_inc">—</td></tr>
           </tbody>
         </table>
@@ -446,9 +484,6 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         Interest Rate Type: Flat &nbsp;|&nbsp; Frequency: Monthly &nbsp;|&nbsp; Payment Method: Bank Transfer &nbsp;|&nbsp; End of Contract: Ownership is transferred to lessee &nbsp;|&nbsp; Guarantor: —
       </div>
       <div id="q_subject" style="font-size:12px;color:var(--muted);margin-bottom:12px">* Subject to credit approval</div>
-
-      <!-- แสดงเฉพาะเมื่อมี Balloon -->
-      <div id="q_diff" style="font-size:12px;color:#6b7280;margin-bottom:12px;display:none"></div>
 
       <div class="terms-section">
         <h4 id="h_terms">Terms</h4>
@@ -621,7 +656,6 @@ function recalc(){
 
   // Purchase Price (แสดงบนเอกสาร)
   const purchasePriceInc = (hasDown || hasBalloon) ? (downBaht + balloonBaht) : PURCHASE_OPTION_INC;
-  const purchasePriceEx  = purchasePriceInc/(1+vatPct);
 
   /* ===== Write Results ===== */
   setText('pmtRounded', fmt0(pmtRounded));
@@ -645,16 +679,6 @@ function recalc(){
   setText('ws_fin_ex',  fmt4(finEx));  setText('ws_fin_inc', fmt2(finance));
   setText('ws_pmt_ex',  fmt4(pmtEx));  setText('ws_pmt_inc', fmt0(pmtInc));
   setText('ws_comm_ex', fmt4(commEx)); setText('ws_comm_inc', fmt2(commission));
-  // Purchase Offer Price: แสดงเฉพาะ Down=0 & Balloon=0
-  const poRow=document.getElementById('ws_row_po');
-  if(!hasDown && !hasBalloon){
-    poRow.style.display='';
-    setText('ws_po_ex',  fmt4(purchasePriceEx));
-    setText('ws_po_inc', fmt2(purchasePriceInc));
-  }else{
-    poRow.style.display='none';
-    setText('ws_po_ex','—'); setText('ws_po_inc','—');
-  }
   setText('ws_rv_ex',   fmt4(rvEx));   setText('ws_rv_inc', fmt2(downBaht+balloonBaht));
 
   // Quote
@@ -672,55 +696,60 @@ function recalc(){
   setText('q_term',months.toString());
 
   // Quotation: Ex. VAT = **2 ตำแหน่ง** / VAT = 2 ตำแหน่ง / Incl. VAT = จำนวนเต็ม
-  setText('q_pmt_ex', fmt2(pmtEx));     // << เปลี่ยนเป็น 2 ตำแหน่งตามที่ขอ
+  setText('q_pmt_ex', fmt2(pmtEx));     // (ปรับตามที่ขอ)
   setText('q_vat',    fmt2(pmtVAT));
   setText('q_pmt_inc',fmt0(pmtInc));
   setText('q_purchase',fmt2(purchasePriceInc));
   setText('q_qty',assetQty.toString()); setText('q_color',assetColor||'-'); setText('q_cust_sign',custName);
 
-  // Difference at end … (เฉพาะมี Balloon)
-  const diffEndInc = hasBalloon ? Math.max(0, balloonBaht - downBaht) : 0;
-  const qDiff = document.getElementById('q_diff');
-  if(hasBalloon){
-    qDiff.style.display='';
-    qDiff.innerHTML = isTH
-      ? `ส่วนต่างชำระเมื่อสิ้นสุดสัญญา (เฉพาะกรณีมี Balloon): <b>${fmt2(diffEndInc)}</b> บาท (รวมภาษีมูลค่าเพิ่ม)`
-      : `Difference at end (Balloon only): <b>${fmt2(diffEndInc)}</b> Baht (Incl. VAT)`;
-  }else{
-    qDiff.style.display='none';
-    qDiff.innerHTML='';
-  }
-
-  // ===== Details of Condition (ตามสูตร 3 กรณี) =====
+  // ===== Details of Condition (3 กรณี) — ใช้ innerHTML เพื่อให้มี <br/> ได้ =====
   const c1 = document.getElementById('condition1');
+  const diffEndInc = hasBalloon ? Math.max(0, balloonBaht - downBaht) : 0;
+
   if(isTH){
     if(hasBalloon){
       c1.innerHTML =
-        `ผู้เช่าจะต้องชำระเงินมัดจำจำนวน ${fmtNum(downBaht,2)} บาท (รวมภาษีมูลค่าเพิ่ม) ให้แก่ผู้ให้เช่า <br/>`+
-        `เงินมัดจำดังกล่าวจะถือเป็นส่วนหนึ่งของราคาซื้อ และจะถูกนำไปหักจากราคาซื้อโดยอัตโนมัติ <br/>`+
-        `เมื่อสัญญาสิ้นสุดลง ผู้เช่าจะต้องชำระส่วนต่างระหว่างราคาซื้อและเงินมัดจำให้แก่ผู้ให้เช่า จำนวน ${fmtNum(diffEndInc,2)} บาท (รวมภาษีมูลค่าเพิ่ม).`;
+        `ผู้เช่าจะต้องชำระเงินมัดจำจำนวน ${fmtNum(downBaht,2)} บาท (รวมภาษีมูลค่าเพิ่ม) ให้แก่ผู้ให้เช่า `+
+        `โดยเงินมัดจำดังกล่าวจะถือเป็นส่วนหนึ่งของราคาซื้อและจะถูกนำไปหักจากราคาซื้อโดยอัตโนมัติ `+
+        `เมื่อสัญญาสิ้นสุดลง ผู้เช่าจะต้องชำระส่วนต่างระหว่างราคาซื้อและเงินมัดจำ จำนวน ${fmtNum(diffEndInc,2)} บาท (รวมภาษีมูลค่าเพิ่ม).`;
     } else if(hasDown && !hasBalloon){
       c1.innerHTML =
-        `ผู้เช่าจะต้องชำระเงินมัดจำจำนวน ${fmtNum(downBaht,2)} บาท (รวมภาษีมูลค่าเพิ่ม) ให้แก่ผู้ให้เช่า โดยถือเป็นราคาซื้อ ณ วันสิ้นสุดระยะเวลาเช่า <br/>`+
+        `ผู้เช่าจะต้องชำระเงินมัดจำจำนวน ${fmtNum(downBaht,2)} บาท (รวมภาษีมูลค่าเพิ่ม) ให้แก่ผู้ให้เช่า `+
+        `โดยถือเป็นราคาซื้อ ณ วันสิ้นสุดระยะเวลาเช่า `+
         `เงินมัดจำดังกล่าวจะถูกนำไปหักจากราคาซื้อโดยอัตโนมัติเมื่อสัญญาสิ้นสุดลง.`;
     } else {
       c1.innerHTML =
-        `ผู้เช่าจะต้องชำระเงินมัดจำจำนวน ${fmtNum(PURCHASE_OPTION_INC,2)} บาท (รวมภาษีมูลค่าเพิ่ม) ให้แก่ผู้ให้เช่า โดยถือเป็นราคาซื้อ ณ วันสิ้นสุดระยะเวลาเช่า.`;
+        `ผู้เช่าจะต้องชำระเงินมัดจำจำนวน ${fmtNum(PURCHASE_OPTION_INC,2)} บาท (รวมภาษีมูลค่าเพิ่ม) ให้แก่ผู้ให้เช่า `+
+        `โดยถือเป็นราคาซื้อ ณ วันสิ้นสุดระยะเวลาเช่า.`;
     }
   } else {
     if(hasBalloon){
       c1.innerHTML =
-        `- Lessee shall pay ${fmtNum(downBaht,2)} Baht (Inc. VAT) as a deposit to Lessor. `+
+        `Lessee shall pay ${fmtNum(downBaht,2)} Baht (Inc. VAT) as a deposit to Lessor. `+
         `The deposit will be a part of the purchase price and applied automatically to Purchase Price. `+
         `When the contract expired, customer shall pay the different amount of purchase option price and deposit to Lessor (${fmt2(diffEndInc)} Baht (Inc. VAT)).`;
     } else if(hasDown && !hasBalloon){
       c1.innerHTML =
-        `- Lessee shall pay deposit of ${fmtNum(downBaht,2)} Baht (Inc. VAT) to Lessor as a Purchase Price at the end of the Lease Period. `+
+        `Lessee shall pay deposit of ${fmtNum(downBaht,2)} Baht (Inc. VAT) to Lessor as a Purchase Price at the end of the Lease Period. `+
         `The deposit will be applied automatically to Purchase Price when the contract expired.`;
     } else {
       c1.innerHTML =
-        `- Lessee shall pay the deposit ${fmtNum(PURCHASE_OPTION_INC,2)} Baht (Inc. VAT) to Lessor as a Purchase Price at the end of the Lease Period.`;
+        `Lessee shall pay the deposit ${fmtNum(PURCHASE_OPTION_INC,2)} Baht (Inc. VAT) to Lessor as a Purchase Price at the end of the Lease Period.`;
     }
+  }
+
+  // Policy warnings
+  const warnBox = document.getElementById('policyWarnings');
+  warnBox.innerHTML='';
+  const downPct = net>0 ? (downBaht/net) : 0;
+  const balloonPct = net>0 ? (balloonBaht/net) : 0;
+  if(balloonPct > 0.30){
+    const s=document.createElement('span'); s.className='pill warn'; s.textContent='Warning: Balloon > 30% of Net';
+    warnBox.appendChild(s);
+  }
+  if((downPct + balloonPct) > 1){
+    const s=document.createElement('span'); s.className='pill err'; s.textContent='Risk: Down + Balloon > 100% of Net';
+    warnBox.appendChild(s);
   }
 }
 
@@ -811,19 +840,19 @@ function solveDownFromMonthly(){
 
 /* ===== Exact Solver ===== */
 function solveDownExactMonthly(target){
-  const gross=getVal('gross'), discount=getVal('discount'), optionPlus=getVal('optionPlus');
-  const net=gross-discount+optionPlus;
+  const gross = getVal('gross'), discount = getVal('discount'), optionPlus = getVal('optionPlus');
+  const net = gross - discount + optionPlus;
 
-  const years=Math.max(0,getVal('years'));
-  const months=Math.trunc(years*12);
-  const flatRate=getVal('flatRate')/100;
+  const years = Math.max(0, getVal('years'));
+  const months = Math.trunc(years * 12);
+  const flatRate = getVal('flatRate') / 100;
 
-  const balloonEnable=(getVal('balloonEnable')==='true');
-  const balloonType=getVal('balloonType');
-  const balloonInput=getVal('balloonInput');
-  const balloonBaht=balloonEnable?((balloonType==='percent')?net*(balloonInput/100):balloonInput):0;
+  const balloonEnable = getVal('balloonEnable') === 'true';
+  const balloonType   = getVal('balloonType');
+  const balloonInput  = getVal('balloonInput');
+  const balloonBaht   = balloonEnable ? ((balloonType === 'percent') ? net * (balloonInput/100) : balloonInput) : 0;
 
-  if(months<=0) return alert('กรุณากำหนดจำนวนปี (Terms) ให้ถูกต้อง');
+  if (months <= 0) { alert('กรุณากำหนดจำนวนปี (Terms) ให้ถูกต้อง'); return; }
 
   const denom = (1 + flatRate * years);
   const desiredFinMinusBalloon = target * months / denom;
@@ -835,30 +864,36 @@ function solveDownExactMonthly(target){
   recalc();
 
   function getPmtIncNow(){
-    const net=getVal('gross')-getVal('discount')+getVal('optionPlus');
-    const downType=getVal('downType'), di=getVal('downInput');
-    const be=(getVal('balloonEnable')==='true'), bt=getVal('balloonType'), bi=getVal('balloonInput');
-    const bb=be?((bt==='percent')? net*(bi/100):bi):0;
-    const months=Math.trunc(getVal('years')*12), fr=getVal('flatRate')/100, yrs=getVal('years');
-    const downBaht=(downType==='percent')? net*(di/100) : di;
+    const gross=getVal('gross'), discount=getVal('discount'), optionPlus=getVal('optionPlus');
+    const net=gross-discount+optionPlus;
+    const downType=getVal('downType'), downInput=getVal('downInput');
+    const balloonEnable=getVal('balloonEnable')==='true', balloonType=getVal('balloonType'), balloonInput=getVal('balloonInput');
+    const balloonBaht=balloonEnable?((balloonType==='percent')?net*(balloonInput/100):balloonInput):0;
+    const years=Math.max(0, getVal('years')), months=Math.trunc(years*12);
+    const flatRate=getVal('flatRate')/100;
+
+    const downBaht=(downType==='percent')? net*(downInput/100) : downInput;
     const finance=Math.max(0, net-downBaht);
-    const fmb=Math.max(0, finance-bb);
-    const total=fmb*fr*yrs; return (months>0)? (fmb+total)/months : 0;
+    const finMinusBalloon=Math.max(0, finance-balloonBaht);
+    const totalInterest=finMinusBalloon*flatRate*years;
+    const pmtInc=(months>0)? (finMinusBalloon+totalInterest)/months : 0;
+    return pmtInc;
   }
 
   let downNow = Math.round(downExact);
   let pmtNow = getPmtIncNow();
   let safety = 0;
-  const slope = - (1 + flatRate*years) / months;
+  const slope = - (1 + flatRate*years) / months; // dpmt/ddown
 
   while (safety < 20) {
-    const r = Math.round(pmtNow);
-    if (r === target) break;
+    const pmtRounded = Math.round(pmtNow);
+    if (pmtRounded === target) break;
+
     const diff = pmtNow - target;
     let step = diff / slope;
     if (!isFinite(step)) step = 0;
-    step = Math.max((diff>0?1:-1), Math.round(step));
-    step = Math.sign(step)*Math.min(Math.abs(step), 10);
+    step = Math.max( (diff>0?1:-1), Math.round(step) );
+    step = Math.sign(step) * Math.min(Math.abs(step), 10);
 
     downNow += step;
     downNow = Math.max(0, Math.min(downNow, Math.round(net)));
@@ -965,14 +1000,14 @@ window.addEventListener('DOMContentLoaded', ()=>{
   // กันล้อเมาส์/trackpad เลื่อนแล้วค่า number เปลี่ยน
   document.addEventListener('wheel', preventWheelOnNumber, {passive:false});
 
-  document.getElementById('btnSolveIRR').addEventListener('click', solveFlatFromIRR);
-  document.getElementById('btnSolveDown').addEventListener('click', solveDownFromMonthly);
-  document.getElementById('btnSolveExact').addEventListener('click', ()=>{
+  document.getElementById('btnSolveIRR')?.addEventListener('click', solveFlatFromIRR);
+  document.getElementById('btnSolveDown')?.addEventListener('click', solveDownFromMonthly);
+  document.getElementById('btnSolveExact')?.addEventListener('click', ()=>{
     const v = parseFloat(document.getElementById('targetMonthlyInc').value||'0');
     if(!(v>0)) return alert('กรุณากรอกเป้าหมายค่างวด/เดือน (รวม VAT)');
     solveDownExactMonthly(v);
   });
-  document.getElementById('btnSolve36000').addEventListener('click', solve36000);
+  document.getElementById('btnSolve36000')?.addEventListener('click', ()=>solveDownExactMonthly(36000));
 });
 </script>
 </body>
