@@ -728,7 +728,7 @@ function recalc(){
   setText('totalInterest',   fmt2(totalInterest));
 
   // ค่างวดรวม VAT → จำนวนเต็ม
-  setText('pmtInc',          fmt0(pmtInc));
+  setText('pmtInc',          fmt2(pmtInc));
   setText('commission',      fmt2(commission));
   setText('irr',             isFinite(irrYear)? (irrYear*100).toFixed(4)+' %':'-');
   setText('trCustomer',      isFinite(trCustYear)? (trCustYear*100).toFixed(4)+' %':'-');
