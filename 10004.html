@@ -4,202 +4,76 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Financial Lease Calculator | Thai ORIX</title>
+<!-- ===== Pastel Theme Override (01478C, EDEFF0, C20417) ===== -->
 <style>
 :root{
-  --bg:#f7f9fc; --surface:#ffffff; --surface2:#ffffff; --surface3:#f3f6fb;
-  --border:#e5e7eb; --border2:#dfe3ea;
-  --txt:#0f172a; --muted:#6b7280; --muted2:#667085;
-  --green:#16a34a; --green-dim:#eaf7ef;
-  --blue:#0b66c3; --blue-dim:#eaf2fb;
-  --amber:#d97706; --amber-dim:#fff7ed;
-  --red:#b91c1c; --red-dim:#fee2e2;
-  --font: Calibri, "Segoe UI", system-ui, -apple-system, Roboto, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
-  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-  --serif: Calibri, Georgia, serif;
-  --rad:12px; --rad-sm:8px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--txt);font-family:var(--font);font-size:14px;line-height:1.6;min-height:100vh}
-
-/* LAYOUT */
-.app{max-width:1200px;margin:0 auto;padding:24px 16px 120px}
-.page-header{margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
-.page-header h1{font-family:var(--serif);font-size:26px;font-weight:600;letter-spacing:-0.2px;color:var(--txt)}
-.page-header h1 span{color:var(--blue)}
-.page-header p{color:var(--muted);font-size:12px;margin-top:4px}
-
-/* GRID */
-.grid-main{display:grid;grid-template-columns:1fr 380px;gap:20px}
-.col-full{grid-column:1/-1}
-@media(max-width:900px){.grid-main{grid-template-columns:1fr}}
-
-/* CARDS */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:16px}
-.card+.card{margin-top:12px}
-.card-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.card-title::before{content:'';width:3px;height:12px;border-radius:2px;flex-shrink:0;background:var(--border2)}
-.card-title.green::before{background:var(--green)}
-.card-title.blue::before{background:var(--blue)}
-.card-title.amber::before{background:var(--amber)}
-.card-title.red::before{background:var(--red)}
-.card-title.purple::before{background:#7c3aed}
-
-/* FORM */
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.form-row.c3{grid-template-columns:1fr 1fr 1fr}
-.form-row.c1{grid-template-columns:1fr}
-.field{display:flex;flex-direction:column;gap:5px}
-.field label{font-size:11px;color:var(--muted2);font-weight:600;letter-spacing:.2px}
-.field label span.hint{color:var(--muted);font-weight:400}
-.field input,.field select{
-  background:var(--surface2); color:var(--txt); border:1px solid var(--border);
-  border-radius:var(--rad-sm); padding:9px 12px; font-size:13px; font-family:var(--font);
-  transition:border-color .15s,background .15s; outline:none; width:100%
-}
-.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(11,102,195,.12);background:#fff}
-.field input[readonly]{color:#98a2b3;background:#f9fafb;cursor:default}
-.field select{cursor:pointer}
-input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.2)}
-.field.mono input{font-family:var(--mono);font-size:13px}
-.field.highlight input{color:var(--blue);font-weight:700;font-family:var(--mono)}
-
-/* NUMBER INPUTS */
-input[type=number]{appearance:textfield;text-align:right}
-input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
-
-/* RESULTS */
-.result-grid{display:flex;flex-direction:column;gap:6px}
-.result-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:var(--rad-sm);background:#fff;border:1px solid var(--border)}
-.result-row .rl{font-size:12px;color:var(--muted2)}
-.result-row .rv{font-family:var(--mono);font-size:13px;color:var(--txt)}
-
-/* BIG PMT DISPLAY */
-.pmt-hero{background:linear-gradient(135deg,#f0fdf4,var(--surface));border:1px solid rgba(22,163,74,.25);border-radius:var(--rad);padding:14px;text-align:center;margin-bottom:12px}
-.pmt-hero .label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--green);opacity:.9;margin-bottom:4px;font-weight:700}
-.pmt-hero .value{font-family:var(--serif);font-size:30px;color:var(--green);letter-spacing:-0.5px;line-height:1}
-.pmt-hero .sub{font-size:12px;color:var(--muted2);margin-top:4px}
-
-/* WORKING SHEET */
-.ws-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.ws-table th{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:6px 8px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface3)}
-.ws-table td{padding:7px 8px;font-size:12px;font-family:var(--mono);border-bottom:1px solid var(--border)}
-.ws-table tr:last-child td{border-bottom:none}
-.ws-table td:not(:first-child){text-align:right}
-
-/* GOAL SEEK SECTION */
-.goal-seek-section{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rad);padding:12px;margin-top:8px}
-.goal-seek-section .gs-title{font-size:11px;font-weight:800;color:var(--amber);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px}
-
-/* BUTTONS */
-.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-button{font-family:var(--font);cursor:pointer;font-size:13px;font-weight:600;border:none;border-radius:var(--rad-sm);padding:10px 16px;transition:all .15s;white-space:nowrap}
-.btn-primary{background:var(--green);color:#07190b}
-.btn-primary:hover{background:#12853b}
-.btn-blue{background:var(--blue);color:#f7fbff}
-.btn-blue:hover{background:#0a57a8}
-.btn-amber{background:var(--amber);color:#fff}
-.btn-amber:hover{background:#be6a05}
-.btn-ghost{background:#fff;color:var(--muted2);border:1px solid var(--border)}
-.btn-ghost:hover{color:var(--txt);border-color:var(--border2)}
-.btn-danger{background:var(--red);color:#fff;border:1px solid rgba(185,28,28,.2)}
-.btn-danger:hover{background:#991b1b}
-.btn-sm{padding:7px 12px;font-size:12px}
-.btn-full{width:100%;display:block;text-align:center}
-
-/* QUOTE PRINT SECTION */
-.quote-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);overflow:hidden;margin-top:16px}
-.quote-header{background:var(--surface3);padding:16px;border-bottom:1px solid var(--border)}
-.quote-header h2{font-family:var(--serif);font-size:20px;font-weight:700}
-.quote-header .sub{font-size:11px;color:var(--muted);margin-top:3px}
-.quote-body{padding:16px}
-.quote-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.qm-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.qm-table th{font-size:11px;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);background:var(--surface3)}
-.qm-table td{padding:7px 8px;font-size:13px;border-bottom:1px solid var(--border)}
-.asset-table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px;background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.asset-table thead th{background:var(--surface3);padding:8px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;text-align:left;border-bottom:1px solid var(--border)}
-.asset-table td{padding:10px 8px;border-bottom:1px solid var(--border)}
-.asset-table .num{text-align:right;font-family:var(--mono)}
-.asset-table .ctr{text-align:center}
-
-/* POLICY WARNING */
-#policyWarnings{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
-.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.pill.ok{background:var(--green-dim);color:var(--green)}
-.pill.warn{background:var(--amber-dim);color:var(--amber)}
-.pill.err{background:var(--red-dim);color:var(--red)}
-
-/* PRINT */
-@page{size:A4;margin:12mm}
-@media print{
-  .no-print{display:none!important}
-  body{background:#fff;color:#111;font-size:12px}
-  .app{max-width:100%;padding:0;margin:0}
-  .grid-main{display:none}
-  .quote-wrap{display:block;border:none;background:#fff;page-break-inside:avoid}
-  .quote-header{background:#f5f7fa;border-bottom:1px solid #ddd}
-  .quote-header h2{color:#111}
-  .quote-header .sub{color:#555}
-  .quote-body{padding:14px}
-  .qm-table th,.qm-table td,.asset-table td,.asset-table thead th{color:#111;border-color:#ddd}
-  .asset-table thead th{background:#f0f0f0}
-}
-
-  <!-- === Easy Colors Override (วางหลัง <style> เดิม) === -->
-:root{
-  /* พื้นหลัง/พื้นผิวที่สว่างขึ้นและคอนทราสต์นุ่มตา */
-  --bg:#f9fafb;
+  /* พื้นหลัง/พื้นผิว (พาสเทลอ่อน อ่านง่าย) */
+  --bg:#edeff0;
   --surface:#ffffff;
   --surface2:#ffffff;
-  --surface3:#f5f7fb;
+  --surface3:#f6f8fb;
 
-  /* เส้นขอบที่จางลงแต่ยังคุมกริดอยู่ */
-  --border:#e7eaf1;
-  --border2:#d9dee8;
+  /* เส้นขอบนุ่มตาแต่ยังเห็นกริด */
+  --border:#e3e6ec;
+  --border2:#d7dbe5;
 
-  /* ตัวอักษร: สีหลักเดิม + muted เข้มขึ้นเล็กน้อยให้อ่านง่าย */
+  /* ตัวอักษรคอนทราสต์ดี */
   --txt:#0f172a;
   --muted:#6b7280;
-  --muted2:#475569;
+  --muted2:#4b5563;
 
-  /* โทนสีหลัก/สถานะ ให้เรียบและสบายตาขึ้น */
-  --blue:#2563eb;    --blue-dim:#eef3ff;
-  --green:#16a34a;   --green-dim:#effaf3;
-  --amber:#b45309;   --amber-dim:#fff4e5;
-  --red:#b91c1c;     --red-dim:#feecec;
+  /* Brand / Status (พาสเทล) */
+  --blue:#01478c;     /* สีแบรนด์หลัก */
+  --blue-dim:#e6eef8; /* ฉากหลัง/เงา/ไฮไลต์ */
+
+  --green:#6ec1a6;    /* primary ปุ่มหลัก (นุ่มสายตา) */
+  --green-dim:#e9f6f1;
+
+  --amber:#f2b661;    /* คำเตือน */
+  --amber-dim:#fff5e6;
+
+  --red:#c20417;      /* ผิดพลาด/ลบ */
+  --red-dim:#ffe9ec;
 }
 
-/* Hero ด้านขวา: ไล่เฉดจาง ๆ ไม่แย่งสายตา */
+/* Hero (ค่างวด/เดือน) — ไล่เฉดพาสเทลฟ้าอ่อน */
 .pmt-hero{
-  background:linear-gradient(135deg,#f3faf4,#ffffff);
-  border:1px solid rgba(22,163,74,.18);
+  background:linear-gradient(135deg,var(--blue-dim),#ffffff);
+  border:1px solid rgba(1,71,140,.18);
 }
+.pmt-hero .label{ color:#2b4b76 }
+.pmt-hero .value{ color:#1f3f67 }
 
-/* Pill แจ้งเตือน: โทนพาสเทลอ่านง่าย */
-.pill.ok{   background:#ecfdf5; color:#047857 }
-.pill.warn{ background:#fff7ed; color:#b45309 }
-.pill.err{  background:#fef2f2; color:#b91c1c }
+/* ปุ่ม — พาสเทล + โฮเวอร์เข้มขึ้นเล็กน้อย */
+.btn-primary{background:var(--green);color:#063b2d}
+.btn-primary:hover{background:#5ab99c}
 
-/* ปุ่ม: โทนเรียบ-คอนทราสต์ดี และ hover ไม่ฉูดฉาด */
-.btn-primary{background:#16a34a;color:#08220f}
-.btn-primary:hover{background:#128a3f}
-.btn-blue{background:#2563eb;color:#f8fbff}
-.btn-blue:hover{background:#1d4ed8}
-.btn-amber{background:#b45309;color:#fff}
-.btn-amber:hover{background:#9a3f06}
-.btn-ghost{background:#fff;color:#475569;border:1px solid var(--border)}
-.btn-ghost:hover{color:#0f172a;border-color:var(--border2)}
+.btn-blue{background:var(--blue);color:#f7fbff}
+.btn-blue:hover{background:#003e72}
 
-/* อินพุต: วงโฟกัสนุ่มขึ้น แต่ยังเห็นชัด */
+.btn-amber{background:var(--amber);color:#3f2a00}
+.btn-amber:hover{background:#e6aa56}
+
+.btn-ghost{background:#fff;color:var(--muted2);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--txt);border-color:var(--border2)}
+
+.btn-danger{background:var(--red);color:#fff;border:1px solid rgba(194,4,23,.15)}
+.btn-danger:hover{background:#a50315}
+
+/* อินพุต: วงโฟกัสนุ่ม ๆ ใช้สีแบรนด์ */
 .field input:focus,.field select:focus{
-  border-color:#2563eb;
-  box-shadow:0 0 0 3px rgba(37,99,235,.15);
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(1,71,140,.15);
   background:#fff;
 }
 
-/* แถบเล็กหน้า title ให้เป็นโทนกลาง ลดความหลากสี */
-.card-title::before{background:#dbe2ef}
+/* ป้ายแจ้งเตือนโทนพาสเทล */
+.pill.ok{   background:var(--green-dim); color:#0d5c4a }
+.pill.warn{ background:var(--amber-dim); color:#8a5a06 }
+.pill.err{  background:var(--red-dim);   color:#8c2e2a }
 
+/* แถบเล็กหน้าหัวข้อการ์ด ให้นุ่มลง */
+.card-title::before{ background:#dfe6f2 }
 </style>
 </head>
 <body>
