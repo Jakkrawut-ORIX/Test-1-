@@ -46,7 +46,6 @@ html,body{background:var(--bg);color:var(--txt);font-family:var(--font);font-siz
 /* FORM */
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .form-row.c3{grid-template-columns:1fr 1fr 1fr}
-.form-row.c1{grid-template-columns:1fr}
 .field{display:flex;flex-direction:column;gap:5px}
 .field label{font-size:11px;color:var(--muted2);font-weight:600;letter-spacing:.2px}
 .field label span.hint{color:var(--muted);font-weight:400}
@@ -672,8 +671,8 @@ function recalc(){
   setText('q_asset',assetName); setText('q_list',fmt2(gross)); setText('q_deposit',fmt2(downBaht));
   setText('q_term',months.toString());
 
-  // Quotation: Ex. VAT = 4 ตำแหน่ง / VAT = 2 ตำแหน่ง / Incl. VAT = จำนวนเต็ม
-  setText('q_pmt_ex', fmt4(pmtEx));
+  // Quotation: Ex. VAT = **2 ตำแหน่ง** / VAT = 2 ตำแหน่ง / Incl. VAT = จำนวนเต็ม
+  setText('q_pmt_ex', fmt2(pmtEx));     // << เปลี่ยนเป็น 2 ตำแหน่งตามที่ขอ
   setText('q_vat',    fmt2(pmtVAT));
   setText('q_pmt_inc',fmt0(pmtInc));
   setText('q_purchase',fmt2(purchasePriceInc));
@@ -812,19 +811,19 @@ function solveDownFromMonthly(){
 
 /* ===== Exact Solver ===== */
 function solveDownExactMonthly(target){
-  const gross = getVal('gross'), discount = getVal('discount'), optionPlus = getVal('optionPlus');
-  const net = gross - discount + optionPlus;
+  const gross=getVal('gross'), discount=getVal('discount'), optionPlus=getVal('optionPlus');
+  const net=gross-discount+optionPlus;
 
-  const years = Math.max(0, getVal('years'));
-  const months = Math.trunc(years * 12);
-  const flatRate = getVal('flatRate') / 100;
+  const years=Math.max(0,getVal('years'));
+  const months=Math.trunc(years*12);
+  const flatRate=getVal('flatRate')/100;
 
-  const balloonEnable = getVal('balloonEnable') === 'true';
-  const balloonType   = getVal('balloonType');
-  const balloonInput  = getVal('balloonInput');
-  const balloonBaht   = balloonEnable ? ((balloonType === 'percent') ? net * (balloonInput/100) : balloonInput) : 0;
+  const balloonEnable=(getVal('balloonEnable')==='true');
+  const balloonType=getVal('balloonType');
+  const balloonInput=getVal('balloonInput');
+  const balloonBaht=balloonEnable?((balloonType==='percent')?net*(balloonInput/100):balloonInput):0;
 
-  if (months <= 0) { alert('กรุณากำหนดจำนวนปี (Terms) ให้ถูกต้อง'); return; }
+  if(months<=0) return alert('กรุณากำหนดจำนวนปี (Terms) ให้ถูกต้อง');
 
   const denom = (1 + flatRate * years);
   const desiredFinMinusBalloon = target * months / denom;
@@ -836,36 +835,30 @@ function solveDownExactMonthly(target){
   recalc();
 
   function getPmtIncNow(){
-    const gross=getVal('gross'), discount=getVal('discount'), optionPlus=getVal('optionPlus');
-    const net=gross-discount+optionPlus;
-    const downType=getVal('downType'), downInput=getVal('downInput');
-    const balloonEnable=getVal('balloonEnable')==='true', balloonType=getVal('balloonType'), balloonInput=getVal('balloonInput');
-    const balloonBaht=balloonEnable?((balloonType==='percent')?net*(balloonInput/100):balloonInput):0;
-    const years=Math.max(0, getVal('years')), months=Math.trunc(years*12);
-    const flatRate=getVal('flatRate')/100;
-
-    const downBaht=(downType==='percent')? net*(downInput/100) : downInput;
+    const net=getVal('gross')-getVal('discount')+getVal('optionPlus');
+    const downType=getVal('downType'), di=getVal('downInput');
+    const be=(getVal('balloonEnable')==='true'), bt=getVal('balloonType'), bi=getVal('balloonInput');
+    const bb=be?((bt==='percent')? net*(bi/100):bi):0;
+    const months=Math.trunc(getVal('years')*12), fr=getVal('flatRate')/100, yrs=getVal('years');
+    const downBaht=(downType==='percent')? net*(di/100) : di;
     const finance=Math.max(0, net-downBaht);
-    const finMinusBalloon=Math.max(0, finance-balloonBaht);
-    const totalInterest=finMinusBalloon*flatRate*years;
-    const pmtInc=(months>0)? (finMinusBalloon+totalInterest)/months : 0;
-    return pmtInc;
+    const fmb=Math.max(0, finance-bb);
+    const total=fmb*fr*yrs; return (months>0)? (fmb+total)/months : 0;
   }
 
   let downNow = Math.round(downExact);
   let pmtNow = getPmtIncNow();
   let safety = 0;
-  const slope = - (1 + flatRate*years) / months; // dpmt/ddown
+  const slope = - (1 + flatRate*years) / months;
 
   while (safety < 20) {
-    const pmtRounded = Math.round(pmtNow);
-    if (pmtRounded === target) break;
-
+    const r = Math.round(pmtNow);
+    if (r === target) break;
     const diff = pmtNow - target;
     let step = diff / slope;
     if (!isFinite(step)) step = 0;
-    step = Math.max( (diff>0?1:-1), Math.round(step) );
-    step = Math.sign(step) * Math.min(Math.abs(step), 10);
+    step = Math.max((diff>0?1:-1), Math.round(step));
+    step = Math.sign(step)*Math.min(Math.abs(step), 10);
 
     downNow += step;
     downNow = Math.max(0, Math.min(downNow, Math.round(net)));
