@@ -192,7 +192,31 @@ button{font-family:var(--font);cursor:pointer;font-size:13px;font-weight:600;bor
 
 /* อ่านง่ายขึ้น: placeholder จางลงเล็กน้อย */
 .field input::placeholder{ color:#9aa3af }
-  
+  /* ===== Editable Inputs: โทนฟ้าเดียว + ไฮไลต์ตอนพิมพ์ ===== */
+.field input.editable,
+.field select.editable{
+  background:#ffffff;
+  border-color: var(--border);
+  transition: background .15s, border-color .15s, box-shadow .15s;
+}
+
+/* hover เล็กน้อยพอให้รู้ว่าแก้ไขได้ */
+.field input.editable:hover,
+.field select.editable:hover{
+  border-color: var(--border2);
+}
+
+/* โฟกัส/กำลังพิมพ์ → ไฮไลต์โทนฟ้า */
+.field input.editing,
+.field select.editing{
+  background:#e6eef8;                  /* ฟ้าอ่อน */
+  border-color:#01478c;                /* ฟ้าแบรนด์ */
+  box-shadow:0 0 0 3px rgba(1,71,140,.18);
+}
+
+/* placeholder จางนิดนึง อ่านง่าย */
+.field input::placeholder{ color:#9aa3af }
+
 </style>
 </head>
 <body>
