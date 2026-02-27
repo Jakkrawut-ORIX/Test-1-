@@ -1,281 +1,665 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lease Quotation Calculator</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lease Quotation | OWS Working Sheet (Web)</title>
+  <meta name="description" content="คำนวณสัญญาเช่าซื้อ/ลิสซิ่ง และสร้างใบเสนอราคาแบบเว็บ (รองรับสลับโหมด Flat/IRR, Goal Seek IRR Target และ Solve Down Payment)"/>
 
-<!-- PDF / Excel Libraries -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    /* ===== Minimal Apple Style (Light) ===== */
+    :root{
+      --bg:#ffffff;            /* white canvas */
+      --surface:#ffffff;       /* panels */
+      --text:#0f172a;          /* primary text (slate-900) */
+      --muted:#6b7280;         /* slate-500 */
+      --line:#e5e7eb;          /* hairline divider */
+      --accent:#0a84ff;        /* Apple blue (macOS Big Sur) */
+      --accent-2:#30b0ff;      /* lighter blue */
+      --danger:#ff3b30;        /* iOS red */
+      --warn:#ff9f0a;          /* iOS orange */
+    }
+    html,body{
+      margin:0;padding:0;background:var(--bg);color:var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    }
+    .wrap{max-width:1100px;margin:24px auto 80px;padding:0 16px}
+    h1,h2,h3{margin:0 0 8px}
+    h1{font-size:20px;font-weight:700}
+    h3{font-size:15px;font-weight:700;color:#111}
 
-<style>
-:root{
-  --primary:#003366;
-  --accent:#0a58ca;
-  --bg:#f4f6f9;
-  --card:#ffffff;
-  --border:#e5e7eb;
-  --success:#198754;
-  --danger:#dc3545;
-}
-body{
-  margin:0;
-  font-family:Segoe UI, Roboto, sans-serif;
-  background:var(--bg);
-}
-header{
-  background:#fff;
-  border-bottom:1px solid var(--border);
-  padding:15px 30px;
-}
-.header-inner{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.logo-area{
-  display:flex;
-  align-items:center;
-}
-.logo{
-  height:55px;
-  margin-right:15px;
-}
-.main-grid{
-  display:grid;
-  grid-template-columns:1.2fr 0.8fr;
-  gap:30px;
-  padding:30px;
-}
-.card{
-  background:#fff;
-  border-radius:12px;
-  padding:25px;
-  box-shadow:0 4px 12px rgba(0,0,0,.05);
-}
-.summary-panel{
-  position:sticky;
-  top:20px;
-}
-.summary-card{
-  background:var(--primary);
-  color:#fff;
-  padding:25px;
-  border-radius:12px;
-  text-align:center;
-}
-.summary-value{
-  font-size:36px;
-  font-weight:700;
-}
-input,select{
-  width:100%;
-  padding:8px;
-  margin-top:4px;
-  margin-bottom:12px;
-  border:1px solid var(--border);
-  border-radius:6px;
-}
-button{
-  padding:10px 15px;
-  border:none;
-  border-radius:6px;
-  background:var(--primary);
-  color:#fff;
-  cursor:pointer;
-}
-button:hover{
-  opacity:.9;
-}
-.footer-buttons{
-  padding:20px 30px;
-  display:flex;
-  gap:10px;
-}
-.quote-preview{
-  background:#fff;
-  padding:30px;
-  margin:30px;
-  border-radius:12px;
-}
-.print-area{
-  font-size:14px;
-}
-.small{
-  font-size:13px;
-}
-</style>
+    /* Toolbar */
+    .toolbar{display:flex;align-items:flex-start;justify-content:space-between;margin:8px 0 20px}
+    .muted{color:var(--muted);font-size:12px}
+    .btns{display:flex;gap:8px;flex-wrap:wrap}
+    button{
+      background:#fff;color:var(--text);border:1px solid var(--line);
+      padding:8px 14px;border-radius:12px;cursor:pointer;font-weight:600;
+      transition:all .15s ease; font-size:14px;
+    }
+    button.primary{background:var(--accent);border-color:transparent;color:white}
+    button.info{background:#f0f9ff;border-color:#dbeafe;color:#075985}
+    button.warn{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+    button.danger{background:#fff1f2;border-color:#fecdd3;color:#b91c1c}
+    button:hover{transform:translateY(-1px)}
+    button:active{transform:translateY(0)}
+
+    /* Grid (simple, airy) */
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .col-12{grid-column:span 12}.col-8{grid-column:span 8}.col-6{grid-column:span 6}.col-4{grid-column:span 4}.col-3{grid-column:span 3}
+    @media (max-width:900px){ .col-8,.col-6,.col-4,.col-3{grid-column:span 12} }
+
+    /* Section shells (no background, only dividers) */
+    .section{padding:8px 0 16px;border-top:1px solid var(--line)}
+    label{display:block;font-size:12px;color:var(--muted);margin:8px 0 6px}
+    input,select{
+      width:100%;background:#fff;color:var(--text);border:1px solid var(--line);
+      border-radius:12px;padding:10px 12px;font-size:14px;outline:0;
+    }
+    input:focus,select:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(10,132,255,0.12)}
+    input[readonly]{color:#9ca3af;background:#f9fafb}
+
+    /* Tables (hairline style) */
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid var(--line);padding:10px 6px;text-align:left;font-size:14px}
+    th{color:var(--muted);font-weight:600}
+    .right{text-align:right}.center{text-align:center}
+
+    /* Quote container (clean) */
+    .quote{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--surface)}
+    .quote h2{margin:0 0 6px;font-size:18px}
+
+    .no-print{}
+    .hl{color:var(--accent);font-weight:700}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+
+    /* Minimal KPI row */
+    .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 0}
+    .kpi .box{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
+    .kpi .lbl{font-size:12px;color:var(--muted)}
+    .kpi .val{font-size:20px;font-weight:800}
+
+    /* Printing */
+    @media print{
+      .no-print{display:none!important}
+      body{background:#fff;color:#111}
+      .wrap{max-width:100%;margin:0;padding:0 10mm}
+      th,td{border-bottom:1px solid #ddd}
+    }
+  </style>
 </head>
 <body>
+<div class="wrap">
+  <!-- Top toolbar -->
+  <div class="toolbar no-print">
+    <div>
+      <h1>📋 OWS Working Sheet (Web) – Lease/Finance Calculator</h1>
+      <div class="muted">Minimal • คงฟังก์ชันเดิมครบ: Flat / IRR, Goal Seek IRR & ค่างวดเป้า, พิมพ์ใบเสนอราคา</div>
+    </div>
+    <div class="btns">
+      <button class="primary" onclick="window.print()">พิมพ์ใบเสนอราคา</button>
+      <button onclick="downloadJSON()">ดาวน์โหลดค่าพารามิเตอร์ (.json)</button>
+      <button class="danger" onclick="resetAll()">รีเซ็ต</button>
+    </div>
+  </div>
 
-<header>
-  <div class="header-inner">
-    <div class="logo-area">
-      <img src="orix_logo.png" class="logo">
-      <div>
-        <div style="font-weight:600">THAI ORIX LEASING CO., LTD.</div>
-        <div class="small">Lease Quotation System</div>
+  <!-- Inputs: same IDs -->
+  <div class="grid no-print">
+    <div class="col-8">
+      <!-- ลูกค้า/เอกสาร -->
+      <div class="section">
+        <h3>ข้อมูลลูกค้า & เอกสาร</h3>
+        <div class="grid">
+          <div class="col-6">
+            <label>ชื่อลูกค้า</label>
+            <input id="custName" value="Test" />
+          </div>
+          <div class="col-3">
+            <label>จาก (ผู้เสนอราคา)</label>
+            <input id="fromName" value="Jakkrawut  Naksomphan" />
+          </div>
+          <div class="col-3">
+            <label>หมายเลขใบเสนอราคา</label>
+            <input id="quotationNo" placeholder="ระบุถ้ามี" />
+          </div>
+          <div class="col-3">
+            <label>ออกเอกสาร (วันที่)</label>
+            <input id="issueDate" type="date" />
+          </div>
+          <div class="col-3">
+            <label>อายุใบเสนอราคา (วัน)</label>
+            <input id="validDays" type="number" value="30" min="1" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ทรัพย์สิน -->
+      <div class="section">
+        <h3>ทรัพย์สิน/รถ</h3>
+        <div class="grid">
+          <div class="col-6">
+            <label>รุ่นรถ</label>
+            <input id="assetName" value="Zeekr 009 6Seat" />
+          </div>
+          <div class="col-3">
+            <label>สี (ถ้ามี)</label>
+            <input id="assetColor" placeholder="ระบุสี" />
+          </div>
+          <div class="col-3">
+            <label>จำนวน (คัน)</label>
+            <input id="assetQty" type="number" value="1" min="1" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ราคา & VAT -->
+      <div class="section">
+        <h3>ราคา & VAT</h3>
+        <div class="grid">
+          <div class="col-3">
+            <label>ราคารถ (Gross) – รวม VAT</label>
+            <input id="gross" type="number" value="3159000" min="0" />
+          </div>
+          <div class="col-3">
+            <label>ส่วนลด (-)</label>
+            <input id="discount" type="number" value="0" min="0" />
+          </div>
+          <div class="col-3">
+            <label>Option (+)</label>
+            <input id="optionPlus" type="number" value="0" min="0" />
+          </div>
+          <div class="col-3">
+            <label>VAT (%)</label>
+            <input id="vatPct" type="number" value="7" min="0" max="20" step="0.01" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ดาวน์ & Balloon -->
+      <div class="section">
+        <h3>เงินดาวน์ & Balloon</h3>
+        <div class="grid">
+          <div class="col-3">
+            <label>ประเภทดาวน์</label>
+            <select id="downType">
+              <option value="amount" selected>จำนวนเงิน</option>
+              <option value="percent">เปอร์เซ็นต์</option>
+            </select>
+          </div>
+          <div class="col-3">
+            <label>ค่าเงินดาวน์ (ตามประเภท)</label>
+            <input id="downInput" type="number" value="1288035" min="0" />
+          </div>
+          <div class="col-3">
+            <label>Balloon (มี/ไม่มี)</label>
+            <select id="balloonEnable">
+              <option value="true">มี</option>
+              <option value="false" selected>ไม่มี</option>
+            </select>
+          </div>
+          <div class="col-3">
+            <label>ประเภท Balloon</label>
+            <select id="balloonType">
+              <option value="amount" selected>จำนวนเงิน</option>
+              <option value="percent">เปอร์เซ็นต์</option>
+            </select>
+          </div>
+          <div class="col-3">
+            <label>ค่า Balloon (ตามประเภท)</label>
+            <input id="balloonInput" type="number" value="0" min="0" />
+          </div>
+        </div>
+      </div>
+
+      <!-- โหมดคำนวณ & คอมมิชชั่น -->
+      <div class="section">
+        <h3>โหมดคำนวณ & คอมมิชชั่น</h3>
+        <div class="grid">
+          <div class="col-3">
+            <label>โหมดคำนวณ</label>
+            <select id="mode">
+              <option value="Flat" selected>Flat</option>
+              <option value="IRR">IRR</option>
+            </select>
+          </div>
+          <div class="col-3" id="flatRateBox">
+            <label>Flat Rate (%) ต่อปี</label>
+            <input id="flatRate" type="number" step="0.0001" value="3.09" min="0" />
+          </div>
+          <div class="col-3">
+            <label>จำนวนปี (Terms)</label>
+            <input id="years" type="number" value="5" min="0" step="0.5" />
+          </div>
+          <div class="col-12" id="irrRow">
+            <div class="grid">
+              <div class="col-3">
+                <label>IRR Target (% ต่อปี)</label>
+                <input id="irrTargetPct" type="number" step="0.0001" value="5.74" min="0" />
+              </div>
+              <div class="col-3" style="display:flex;align-items:flex-end">
+                <button class="info" id="btnSolveIRR" type="button">ปรับ Flat ให้เท่ากับ IRR Target</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="grid">
+              <div class="col-3">
+                <label>ฐานค่าคอมมิชชั่น</label>
+                <select id="commBaseChoice">
+                  <option value="finance" selected>ยอดจัด</option>
+                  <option value="interest">ดอกเบี้ยรวม</option>
+                </select>
+              </div>
+              <div class="col-3">
+                <label>% ค่าคอม</label>
+                <input id="commPct" type="number" value="2.5" min="0" step="0.01" />
+              </div>
+              <div class="col-3">
+                <label>Extra ค่าคอม (บาท)</label>
+                <input id="commExtra" type="number" value="0" min="0" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Goal Seek -->
+      <div class="section">
+        <h3>ตัวช่วยเป้าหมาย (Goal Seek)</h3>
+        <div class="grid">
+          <div class="col-4">
+            <label>เป้าหมายค่างวด/เดือน (รวม VAT)</label>
+            <input id="targetMonthlyInc" type="number" placeholder="เช่น 36000" min="0" />
+          </div>
+          <div class="col-4">
+            <label>Step (บาท) สำหรับหาค่าดาวน์</label>
+            <input id="downStep" type="number" value="1" min="1" />
+          </div>
+          <div class="col-4" style="display:flex;align-items:flex-end">
+            <button class="warn" id="btnSolveDown" type="button">คำนวณดาวน์เพื่อให้ได้ค่างวดตามเป้าหมาย</button>
+          </div>
+        </div>
+        <div class="muted" style="margin-top:6px">หมายเหตุ: ตัวช่วยจะบังคับโหมดดาวน์เป็น "จำนวนเงิน" ชั่วคราวเพื่อค้นหาค่าที่เหมาะสม</div>
       </div>
     </div>
-    <div>
-      <select id="language" onchange="renderLanguage()">
-        <option value="th">ไทย</option>
-        <option value="en">English</option>
-      </select>
+
+    <!-- Summary results -->
+    <div class="col-4">
+      <div class="section">
+        <h3>สรุปเร็ว</h3>
+        <div class="kpi">
+          <div class="box">
+            <div class="lbl">ค่างวด/เดือน (รวม VAT)</div>
+            <div class="val hl" id="pmtInc">-</div>
+          </div>
+          <div class="box">
+            <div class="lbl">ค่างวด (ปัดเศษ)</div>
+            <div class="val" id="pmtRounded">-</div>
+          </div>
+          <div class="box">
+            <div class="lbl">IRR (รวมคอม) ต่อปี</div>
+            <div class="val" id="irr">-</div>
+          </div>
+          <div class="box">
+            <div class="lbl">TR ลูกค้า ต่อปี</div>
+            <div class="val" id="trCustomer">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>OWS Working Sheet</h3>
+        <table>
+          <thead>
+            <tr><th></th><th class="right">Ex. VAT</th><th class="right">Inc. VAT</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ราคาสุทธิ (Net Price)</td><td class="right" id="ws_net_ex"></td><td class="right" id="ws_net_inc"></td></tr>
+            <tr><td>เงินดาวน์ (Deposit)</td><td class="right" id="ws_dep_ex"></td><td class="right" id="ws_dep_inc"></td></tr>
+            <tr><td>ยอดจัด (Finance)</td><td class="right" id="ws_fin_ex"></td><td class="right" id="ws_fin_inc"></td></tr>
+            <tr><td>ค่างวด (Monthly)</td><td class="right" id="ws_pmt_ex"></td><td class="right" id="ws_pmt_inc"></td></tr>
+            <tr><td>ค่าคอมมิชชั่น (Comm.)</td><td class="right" id="ws_comm_ex"></td><td class="right" id="ws_comm_inc"></td></tr>
+            <tr><td>RV (Deposit + Balloon)</td><td class="right" id="ws_rv_ex"></td><td class="right" id="ws_rv_inc"></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
-</header>
+  </div><!-- grid -->
 
-<div class="main-grid">
+  <!-- ใบเสนอราคา (Print-friendly) -->
+  <div class="quote" id="quote">
+    <div class="grid">
+      <div class="col-12">
+        <h2>THAI ORIX LEASING CO., LTD. — QUOTATION</h2>
+        <small class="muted">Head Office: 555 Rasa Tower 2, Unit 1801 18th–19th Floor, Paholyothin Rd., Chatuchak, Bangkok 10900 | Tel. 02-792-4500 Fax. 02-792-4501</small>
+      </div>
+      <div class="col-6">
+        <table>
+          <tr><th>To</th><td id="q_to"></td></tr>
+          <tr><th>From</th><td id="q_from"></td></tr>
+        </table>
+      </div>
+      <div class="col-6">
+        <table>
+          <tr><th>Quotation No</th><td id="q_no"></td></tr>
+          <tr><th>Issue Date</th><td id="q_issue"></td></tr>
+          <tr><th>Expiration Date</th><td id="q_expire"></td></tr>
+        </table>
+      </div>
 
-<div class="card">
-<h3>Customer & Vehicle</h3>
-<label>Customer Name</label>
-<input id="custName">
+      <div class="col-12">
+        <p>Thank you for your trust in our service. We are pleased to offer the following prices for our service.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Asset</th>
+              <th class="right">List Price<br/>(Incl. VAT)</th>
+              <th class="right">Deposit<br/>(Incl. VAT)</th>
+              <th class="center">Term (Month)</th>
+              <th class="right">Monthly Payment<br/>(Excl. VAT)</th>
+              <th class="right">VAT</th>
+              <th class="right">Monthly Payment<br/>(Incl. VAT)</th>
+              <th class="right">Purchase Price<br/>(Incl. VAT)</th>
+              <th class="center">Qty</th>
+              <th>Color</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td id="q_asset"></td>
+              <td class="right" id="q_list"></td>
+              <td class="right" id="q_deposit"></td>
+              <td class="center" id="q_term"></td>
+              <td class="right" id="q_pmt_ex"></td>
+              <td class="right" id="q_vat"></td>
+              <td class="right" id="q_pmt_inc"></td>
+              <td class="right" id="q_purchase"></td>
+              <td class="center" id="q_qty"></td>
+              <td id="q_color"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-<label>Model</label>
-<input id="model">
+      <div class="col-12">
+        <p class="muted">Interest Rate Type: Flat | Frequency: Monthly | Payment Method: Bank Transfer | End of Contract: Ownership is transferred to lessee | Guarantor: -</p>
+        <p class="muted">* Subject to credit approval</p>
+        <h3 style="margin:8px 0 4px">Terms:</h3>
+        <ol>
+          <li>This quotation is subject to credit approval at our sole discretion.</li>
+          <li>If you cancel your order after signing this document for any reason, you shall be responsible for the total vehicle purchase price.</li>
+        </ol>
+        <h3 style="margin:8px 0 4px">Details of Condition:</h3>
+        <ol>
+          <li id="condition1">Vehicle Purchase Price / Deposit condition …</li>
+          <li>- The monthly lease rent doesn’t include the 1st insurance, Compulsory Insurance, Tax Fee and Registration Fee.<br/>- Lessee shall be responsible for the 1st insurance, Compulsory Insurance and Tax Fee through all contracts and the beneficiary has to be Thai ORIX Leasing Co., Ltd.</li>
+          <li id="condition2">This offer is valid for 30 days from the quotation date. If this document is not signed and returned to us within the 30 days, we reserve the right to change the offer in this quotation.</li>
+          <li>
+            This offer includes a purchase option. If you choose not to purchase the asset at the end of the lease period:
+            <ul>
+              <li>a. The vehicle will be sold by us via auction to a 3rd party</li>
+              <li>b. If the sale price at auction is less than the purchase option price, you agree to pay us the difference between the sale price and purchase option price</li>
+            </ul>
+          </li>
+        </ol>
 
-<label>Car Price (Incl. VAT)</label>
-<input id="price" type="number" oninput="calculate()">
-
-<label>Deposit (Incl. VAT)</label>
-<input id="deposit" type="number" oninput="calculate()">
-
-<label>Balloon (Incl. VAT)</label>
-<input id="balloon" type="number" oninput="calculate()">
-
-<label>Term (Months)</label>
-<input id="term" type="number" value="60" oninput="calculate()">
-
-<label>Interest Rate (% per year)</label>
-<input id="rate" type="number" value="5" oninput="calculate()">
-</div>
-
-<div class="summary-panel">
-  <div class="summary-card">
-    <div>Monthly Payment</div>
-    <div class="summary-value" id="monthly">0</div>
-    <div>Baht</div>
-  </div>
-  <div class="card" style="margin-top:20px">
-    <div>IRR: <span id="irr"></span></div>
-    <div>Finance: <span id="finance"></span></div>
-  </div>
-</div>
-
-</div>
-
-<div class="quote-preview print-area" id="quoteArea">
-  <h2 style="text-align:center">QUOTATION</h2>
-  <div id="quotationNo"></div>
-  <hr>
-  <b>Head Office:</b><br>
-  555 Rasa Tower2, Unit 1801 18th,19th Floor Paholyothin Rd. Chatuchak Bangkok 10900<br>
-  Tel. 02-792-4500<br><br>
-
-  <b>Eastern Branch:</b><br>
-  Amata Nakorn Industrial Estate 700/17 Moo 1, Tambol Klongtamru, Amphur Muang, Chonburi 20000<br>
-  Tel. 0-3845-7580<br><br>
-
-  <div id="quoteContent"></div>
-</div>
-
-<div class="footer-buttons">
-  <button onclick="window.print()">Print</button>
-  <button onclick="downloadPDF()">Download PDF</button>
-  <button onclick="exportExcel('th')">Excel TH</button>
-  <button onclick="exportExcel('en')">Excel EN</button>
+        <div class="grid" style="margin-top:16px">
+          <div class="col-6">
+            <div>By signing this document, you have confirmed your order, and have read and accepted all terms and conditions in this document.</div>
+          </div>
+          <div class="col-6">
+            <table>
+              <tr><th>Authorized Signatory</th><td>Panutda Kengkriengkrai (Senior Manager)</td></tr>
+              <tr><th>Customer</th><td id="q_cust_sign"></td></tr>
+              <tr><th>Date</th><td>&nbsp;</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div> <!-- grid -->
+  </div> <!-- quote -->
 </div>
 
 <script>
-let lang="th";
+  // ---------- Utilities ----------
+  const fmtBaht = (v) => (isFinite(v) ? v.toLocaleString('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 2 }) : '-');
+  const fmtNum  = (v, d=2) => (isFinite(v) ? Number(v).toLocaleString('th-TH', { minimumFractionDigits: d, maximumFractionDigits: d }) : '-');
+  function getVal(id){ const el = document.getElementById(id); if(!el) return null; if(el.type==='number') return parseFloat(el.value||'0'); return el.value; }
+  function setVal(id,v){ const el=document.getElementById(id); if(el) el.value=v; }
+  function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+  function todayIso(){ const d=new Date(); const tz=d.getTimezoneOffset(); const z=new Date(d.getTime()-tz*60*1000); return z.toISOString().slice(0,10); }
 
-function generateQuotationNo(){
-  const today=new Date();
-  const y=today.getFullYear();
-  const m=String(today.getMonth()+1).padStart(2,'0');
-  const d=String(today.getDate()).padStart(2,'0');
-  const key="qt_"+y+m+d;
-  let count=localStorage.getItem(key)||0;
-  count++;
-  localStorage.setItem(key,count);
-  return `QT-${y}${m}${d}-${String(count).padStart(3,'0')}`;
-}
-document.getElementById("quotationNo").innerText="Quotation No: "+generateQuotationNo();
-
-function calculate(){
-  let price=+priceEl().value||0;
-  let deposit=+depositEl().value||0;
-  let balloon=+balloonEl().value||0;
-  let term=+termEl().value||1;
-  let rate=+rateEl().value/100/12;
-
-  let finance=price-deposit;
-  let pmt=(finance*rate)/(1-Math.pow(1+rate,-term));
-  if(balloon>0){
-    pmt=((finance-balloon/Math.pow(1+rate,term))*rate)/(1-Math.pow(1+rate,-term));
+  // Newton solver
+  function rate(nper, pmt, pv, fv=0, type=0, guess=0.01){
+    const maxIter=100, tol=1e-12; let r=guess;
+    if(Math.abs(pmt)<1e-18 && Math.abs(fv)<1e-18) return 0;
+    for(let i=0;i<maxIter;i++){
+      const t=Math.pow(1+r,nper);
+      const f=pv*t + pmt*(1+r*type)*(t-1)/r + fv;
+      const df=pv*nper*Math.pow(1+r,nper-1)
+        + pmt*(1+r*type)*(((t-1)/r) + (nper*Math.pow(1+r,nper-1)/r) - ((t-1)/(r*r)));
+      const nr=r - f/df;
+      if(!isFinite(nr)) break;
+      if(Math.abs(nr-r)<tol){ r=nr; break;}
+      r=nr;
+    }
+    return r;
   }
 
-  document.getElementById("monthly").innerText=pmt.toFixed(2);
-  document.getElementById("finance").innerText=finance.toFixed(2);
-  document.getElementById("irr").innerText=(rate*12*100).toFixed(2)+"%";
-
-  renderQuotation(price,deposit,balloon,pmt,term);
-}
-
-function renderQuotation(price,deposit,balloon,pmt,term){
-  let condition="";
-  if(balloon>0){
-    condition=`Lessee shall pay ${deposit.toFixed(2)} Baht as deposit. At end pay difference with balloon.`;
-  }else if(deposit>0){
-    condition=`Lessee shall pay deposit ${deposit.toFixed(2)} Baht applied to purchase price.`;
-  }else{
-    condition=`Lessee shall pay 1,070 Baht as purchase option.`;
+  // ---------- UI behaviors ----------
+  function uiToggleMode(){
+    const mode=getVal('mode');
+    const irrRow=document.getElementById('irrRow');
+    const btnSolveIRR=document.getElementById('btnSolveIRR');
+    if(mode==='IRR'){ irrRow.style.display='block'; btnSolveIRR.disabled=false; }
+    else{ irrRow.style.display='none'; btnSolveIRR.disabled=true; }
   }
 
-  document.getElementById("quoteContent").innerHTML=`
-  Customer: ${custName.value}<br>
-  Model: ${model.value}<br>
-  Car Price: ${price.toFixed(2)}<br>
-  Deposit: ${deposit.toFixed(2)}<br>
-  Monthly: ${pmt.toFixed(2)}<br>
-  Term: ${term} months<br><br>
-  <b>Condition:</b><br>${condition}
-  `;
-}
+  // ---------- Core calc ----------
+  function recalc(){
+    const gross=getVal('gross'); const discount=getVal('discount'); const optionPlus=getVal('optionPlus'); const vatPct=getVal('vatPct')/100;
+    const downType=getVal('downType'); const downInput=getVal('downInput');
+    const balloonEnable=getVal('balloonEnable')==='true'; const balloonType=getVal('balloonType'); const balloonInput=getVal('balloonInput');
+    const mode=getVal('mode'); let flatRate=getVal('flatRate')/100; const years = Math.max(0, getVal('years')); const months=Math.round(years*12);
 
-function renderLanguage(){
-  lang=document.getElementById("language").value;
-}
+    const net=gross-discount+optionPlus;
+    const downBaht=(downType==='percent')? net*(downInput/100) : downInput;
+    const balloonBaht=balloonEnable ? ((balloonType==='percent')? net*(balloonInput/100) : balloonInput) : 0;
+    const finance=Math.max(0, net-downBaht);
+    const finMinusBalloon=Math.max(0, finance - balloonBaht);
 
-function downloadPDF(){
-  html2pdf().from(document.getElementById("quoteArea")).save("Lease-Quotation.pdf");
-}
+    const totalInterest = finMinusBalloon * flatRate * years;
+    const pmtInc=(months>0)? (finMinusBalloon+totalInterest)/months : 0;
+    const pmtRounded=Math.round(pmtInc);
 
-function exportExcel(language){
-  const wb=XLSX.utils.book_new();
-  const ws_data=[
-    ["Customer",custName.value],
-    ["Model",model.value],
-    ["Monthly",monthly.innerText]
-  ];
-  const ws=XLSX.utils.aoa_to_sheet(ws_data);
-  XLSX.utils.book_append_sheet(wb,ws,"Quotation");
-  XLSX.writeFile(wb,language==="th"?"ใบเสนอราคา.xlsx":"Quotation.xlsx");
-}
+    const commBaseChoice=getVal('commBaseChoice'); const commPct=getVal('commPct')/100; const commExtra=getVal('commExtra');
+    const commBaseNum=(commBaseChoice==='interest')? totalInterest : finance;
+    const commission=Math.round(commBaseNum*commPct+Number(commExtra||0));
 
-function priceEl(){return document.getElementById("price")}
-function depositEl(){return document.getElementById("deposit")}
-function balloonEl(){return document.getElementById("balloon")}
-function termEl(){return document.getElementById("term")}
-function rateEl(){return document.getElementById("rate")}
-const custName=document.getElementById("custName");
-const model=document.getElementById("model");
+    const pmtEx=pmtInc/(1+vatPct);
+    const pvCompany=-(finance+commission)/(1+vatPct);
+    const pvCustomer= -finance/(1+vatPct);
+    const fvEx=balloonBaht/(1+vatPct);
+    const rComp=(months>0 && pmtEx>0) ? rate(months, pmtEx, pvCompany, fvEx, 0, 0.01) : 0;
+    const rCust=(months>0 && pmtEx>0) ? rate(months, pmtEx, pvCustomer, fvEx, 0, 0.01) : 0;
+    const irrYear=rComp*12; const trCustYear=rCust*12;
 
-calculate();
+    const netEx=net/(1+vatPct), downEx=downBaht/(1+vatPct), finEx=finance/(1+vatPct), commEx=commission/(1+vatPct), rvEx=(downBaht+balloonBaht)/(1+vatPct);
+
+    // results
+    setText('pmtInc', fmtBaht(pmtInc));
+    setText('pmtRounded', fmtBaht(pmtRounded));
+    setText('irr', isFinite(irrYear)? (irrYear*100).toFixed(4)+' %':'-');
+    setText('trCustomer', isFinite(trCustYear)? (trCustYear*100).toFixed(4)+' %':'-');
+
+    // working + details (table on right)
+    setText('ws_net_ex', fmtBaht(netEx)); setText('ws_net_inc', fmtBaht(net));
+    setText('ws_dep_ex', fmtBaht(downEx)); setText('ws_dep_inc', fmtBaht(downBaht));
+    setText('ws_fin_ex', fmtBaht(finEx)); setText('ws_fin_inc', fmtBaht(finance));
+    setText('ws_pmt_ex', fmtBaht(pmtEx)); setText('ws_pmt_inc', fmtBaht(pmtInc));
+    setText('ws_comm_ex', fmtBaht(commEx)); setText('ws_comm_inc', fmtBaht(commission));
+    setText('ws_rv_ex', fmtBaht(rvEx)); setText('ws_rv_inc', fmtBaht(downBaht+balloonBaht));
+
+    // quotation
+    const custName=getVal('custName'); const fromName=getVal('fromName'); const quotationNo=getVal('quotationNo'); const issueDate=getVal('issueDate'); const validDays=Math.max(0, getVal('validDays')); const assetName=getVal('assetName'); const assetColor=getVal('assetColor'); const assetQty=Math.max(1, getVal('assetQty'));
+    const issue=issueDate || todayIso(); const exp=new Date(issue); exp.setDate(exp.getDate()+validDays); const expIso=new Date(exp.getTime()-exp.getTimezoneOffset()*60000).toISOString().slice(0,10); const pmtVAT=pmtInc-pmtEx;
+
+    setText('q_to', custName); setText('q_from', fromName); setText('q_no', quotationNo || '-'); setText('q_issue', issue); setText('q_expire', `${expIso} ( ${validDays} days )`);
+    setText('q_asset', assetName); setText('q_list', fmtBaht(gross)); setText('q_deposit', fmtBaht(downBaht)); setText('q_term', months.toString());
+    setText('q_pmt_ex', fmtBaht(pmtEx)); setText('q_vat', fmtBaht(pmtVAT)); setText('q_pmt_inc', fmtBaht(pmtInc));
+    setText('q_purchase', fmtBaht(downBaht)); setText('q_qty', assetQty.toString()); setText('q_color', assetColor || '-'); setText('q_cust_sign', custName);
+
+    const cond1 = (()=>{
+      const depTxt=fmtNum(downBaht,2);
+      if(balloonEnable && balloonBaht>0){
+        return `Lessee shall pay deposit of ${depTxt} Baht (Inc. VAT) as a deposit to Lessor. The deposit will be a part of the purchase price and applied automatically to Purchase Price. When the contract expires, customer shall pay the difference between the purchase option price and the deposit to Lessor ${fmtNum(downBaht,2)} Baht (Inc. VAT).`;
+      } else {
+        return `Lessee shall pay deposit of ${depTxt} Baht (Inc. VAT) to Lessor as a Purchase Price at the end of the Lease Period. The deposit will be applied automatically to Purchase Price when the contract expired.`;
+      }
+    })();
+    setText('condition1', cond1);
+    setText('condition2', `This offer is valid for ${validDays} days from the quotation date. If this document is not signed and returned to us within the ${validDays} days, we reserve the right to change the offer in this quotation.`);
+  }
+
+  function solveFlatFromIRR(){
+    const mode=getVal('mode'); if(mode!=='IRR') return;
+    const irrTargetPct=getVal('irrTargetPct'); const irrTarget=irrTargetPct/100; const vatPct=getVal('vatPct')/100;
+    const gross=getVal('gross'); const discount=getVal('discount'); const optionPlus=getVal('optionPlus'); const net=gross-discount+optionPlus;
+    const downType=getVal('downType'); const downInput=getVal('downInput'); const downBaht=(downType==='percent')? net*(downInput/100) : downInput;
+    const balloonEnable=getVal('balloonEnable')==='true'; const balloonType=getVal('balloonType'); const balloonInput=getVal('balloonInput');
+    const balloonBaht=balloonEnable ? ((balloonType==='percent')? net*(balloonInput/100) : balloonInput) : 0;
+    const finance=Math.max(0, net-downBaht);
+    const years=Math.max(0, getVal('years')); const months=Math.round(years*12);
+    const commBaseChoice=getVal('commBaseChoice'); const commPct=getVal('commPct')/100; const commExtra=getVal('commExtra');
+
+    function irrFromFlat(flat){
+      const finMinusBalloon=Math.max(0, finance - balloonBaht);
+      const totalInterest=finMinusBalloon*flat*years;
+      const pmtInc=(months>0)? (finMinusBalloon+totalInterest)/months : 0;
+      const pmtEx=pmtInc/(1+vatPct);
+      const commission=Math.round(((commBaseChoice==='interest')? totalInterest : finance)*commPct + Number(commExtra||0));
+      const pvCompany=-(finance+commission)/(1+vatPct);
+      const fvEx=balloonBaht/(1+vatPct);
+      const rComp=(months>0 && pmtEx>0)? rate(months, pmtEx, pvCompany, fvEx, 0, 0.01) : 0;
+      return rComp*12;
+    }
+
+    let lo=0.000001, hi=0.40, mid;
+    for(let i=0;i<80;i++){ mid=(lo+hi)/2; const irr=irrFromFlat(mid); if(!isFinite(irr)) break; if(irr>irrTarget) hi = mid; else lo = mid; }
+    const irrLo=irrFromFlat(lo), irrHi=irrFromFlat(hi);
+    if(isFinite(irrLo)&&isFinite(irrHi)){
+      let a=lo,b=hi;
+      for(let i=0;i<120;i++){
+        const m=(a+b)/2; const irrM=irrFromFlat(m);
+        if(!isFinite(irrM)) break;
+        if((irrLo-irrTarget)*(irrM-irrTarget)<=0){ b=m; }else{ a=m; }
+        if(Math.abs(b-a)<1e-6){ mid=(a+b)/2; break; }
+      }
+      mid=(a+b)/2;
+    }
+    setVal('flatRate', (mid*100).toFixed(4));
+    recalc();
+  }
+
+  function solveDownFromMonthly(){
+    const target=getVal('targetMonthlyInc');
+    const step=Math.max(1, Math.floor(getVal('downStep')||1));
+    if(!(target>0)) return alert('กรุณากรอกเป้าหมายค่างวด/เดือน (รวม VAT)');
+
+    setVal('downType','amount');
+
+    const gross=getVal('gross'); const discount=getVal('discount'); const optionPlus=getVal('optionPlus'); const net=gross-discount+optionPlus;
+    const balloonEnable=getVal('balloonEnable')==='true'; const balloonType=getVal('balloonType'); const balloonInput=getVal('balloonInput');
+    const balloonBaht=balloonEnable ? ((balloonType==='percent')? net*(balloonInput/100) : balloonInput) : 0;
+    const years=Math.max(0, getVal('years')); const months=Math.round(years*12);
+
+    function monthlyFromDown(down){
+      const finance=Math.max(0, net-down);
+      const finMinusBalloon=Math.max(0, finance - balloonBaht);
+      const flatRate=getVal('flatRate')/100;
+      const totalInterest=finMinusBalloon*flatRate*years;
+      const pmtInc=(months>0)? (finMinusBalloon+totalInterest)/months : 0;
+      const pmtRounded=Math.round(pmtInc);
+      return pmtRounded;
+    }
+
+    let lo=0, hi=Math.max(0, Math.floor(net/step)*step);
+    let best=lo, bestDiff=Infinity;
+
+    for(let i=0;i<60;i++){
+      const mid=Math.floor(((lo+hi)/2)/step)*step;
+      const lease=monthlyFromDown(mid);
+      const diff=Math.abs(lease-target);
+      if(diff<bestDiff || (diff===bestDiff && mid<best)){ best=mid; bestDiff=diff;}
+      if(Math.abs(hi-lo)<=step) break;
+      if(lease>target){ lo=mid+step; } else { hi=mid-step; }
+    }
+    for(let m=Math.max(0,best-3*step); m<=best+3*step; m+=step){
+      const lease=monthlyFromDown(m);
+      const diff=Math.abs(lease-target);
+      if(diff<bestDiff || (diff===bestDiff && m<best)){ best=m; bestDiff=diff; }
+    }
+    setVal('downInput', String(best));
+    setVal('downType','amount');
+    recalc();
+    alert(`สำเร็จ: เงินดาวน์ ≈ ${best.toLocaleString('th-TH')} บาท
+ค่างวด/เดือน (ปัด) ≈ ${monthlyFromDown(best).toLocaleString('th-TH')} บาท`);
+  }
+
+  function resetAll(){
+    if(!confirm('ยืนยันการรีเซ็ตค่าทั้งหมดกลับค่าเริ่มต้น?')) return;
+    document.getElementById('gross').value=3159000;
+    document.getElementById('discount').value=0;
+    document.getElementById('optionPlus').value=0;
+    document.getElementById('vatPct').value=7;
+    document.getElementById('downType').value='amount';
+    document.getElementById('downInput').value=1288035;
+    document.getElementById('balloonEnable').value='false';
+    document.getElementById('balloonType').value='amount';
+    document.getElementById('balloonInput').value=0;
+    document.getElementById('mode').value='Flat';
+    document.getElementById('flatRate').value=3.09;
+    document.getElementById('years').value=5;
+    document.getElementById('irrTargetPct').value=5.74;
+    document.getElementById('commBaseChoice').value='finance';
+    document.getElementById('commPct').value=2.5;
+    document.getElementById('commExtra').value=0;
+    document.getElementById('custName').value='Test';
+    document.getElementById('fromName').value='Jakkrawut  Naksomphan';
+    document.getElementById('quotationNo').value='';
+    document.getElementById('issueDate').value='';
+    document.getElementById('validDays').value=30;
+    document.getElementById('assetName').value='Zeekr 009 6Seat';
+    document.getElementById('assetColor').value='';
+    document.getElementById('assetQty').value=1;
+    document.getElementById('targetMonthlyInc').value='';
+    document.getElementById('downStep').value=1;
+    uiToggleMode(); recalc();
+  }
+
+  function downloadJSON(){
+    const ids=['custName','fromName','quotationNo','issueDate','validDays','assetName','assetColor','assetQty','gross','discount','optionPlus','vatPct','downType','downInput','balloonEnable','balloonType','balloonInput','mode','flatRate','years','irrTargetPct','commBaseChoice','commPct','commExtra','targetMonthlyInc','downStep'];
+    const data={}; ids.forEach(id=>{ const el=document.getElementById(id); if(el) data[id]=el.value;});
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='quotation-params.json'; a.click(); URL.revokeObjectURL(a.href);
+  }
+
+  document.addEventListener('input', (e)=>{
+    if(['INPUT','SELECT'].includes(e.target.tagName)){
+      if(e.target.id==='mode') uiToggleMode();
+      recalc();
+    }
+  });
+  window.addEventListener('DOMContentLoaded', ()=>{
+    if(!document.getElementById('issueDate').value){ document.getElementById('issueDate').value = todayIso(); }
+    uiToggleMode(); recalc();
+    document.getElementById('btnSolveIRR').addEventListener('click', solveFlatFromIRR);
+    document.getElementById('btnSolveDown').addEventListener('click', solveDownFromMonthly);
+  });
 </script>
-
 </body>
 </html>
