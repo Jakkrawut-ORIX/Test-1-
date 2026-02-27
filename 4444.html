@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lease Quotation Calculator</title>
+
+<!-- PDF / Excel Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+:root{
+  --primary:#003366;
+  --accent:#0a58ca;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --success:#198754;
+  --danger:#dc3545;
+}
+body{
+  margin:0;
+  font-family:Segoe UI, Roboto, sans-serif;
+  background:var(--bg);
+}
+header{
+  background:#fff;
+  border-bottom:1px solid var(--border);
+  padding:15px 30px;
+}
+.header-inner{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.logo-area{
+  display:flex;
+  align-items:center;
+}
+.logo{
+  height:55px;
+  margin-right:15px;
+}
+.main-grid{
+  display:grid;
+  grid-template-columns:1.2fr 0.8fr;
+  gap:30px;
+  padding:30px;
+}
+.card{
+  background:#fff;
+  border-radius:12px;
+  padding:25px;
+  box-shadow:0 4px 12px rgba(0,0,0,.05);
+}
+.summary-panel{
+  position:sticky;
+  top:20px;
+}
+.summary-card{
+  background:var(--primary);
+  color:#fff;
+  padding:25px;
+  border-radius:12px;
+  text-align:center;
+}
+.summary-value{
+  font-size:36px;
+  font-weight:700;
+}
+input,select{
+  width:100%;
+  padding:8px;
+  margin-top:4px;
+  margin-bottom:12px;
+  border:1px solid var(--border);
+  border-radius:6px;
+}
+button{
+  padding:10px 15px;
+  border:none;
+  border-radius:6px;
+  background:var(--primary);
+  color:#fff;
+  cursor:pointer;
+}
+button:hover{
+  opacity:.9;
+}
+.footer-buttons{
+  padding:20px 30px;
+  display:flex;
+  gap:10px;
+}
+.quote-preview{
+  background:#fff;
+  padding:30px;
+  margin:30px;
+  border-radius:12px;
+}
+.print-area{
+  font-size:14px;
+}
+.small{
+  font-size:13px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-area">
+      <img src="orix_logo.png" class="logo">
+      <div>
+        <div style="font-weight:600">THAI ORIX LEASING CO., LTD.</div>
+        <div class="small">Lease Quotation System</div>
+      </div>
+    </div>
+    <div>
+      <select id="language" onchange="renderLanguage()">
+        <option value="th">ไทย</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<div class="main-grid">
+
+<div class="card">
+<h3>Customer & Vehicle</h3>
+<label>Customer Name</label>
+<input id="custName">
+
+<label>Model</label>
+<input id="model">
+
+<label>Car Price (Incl. VAT)</label>
+<input id="price" type="number" oninput="calculate()">
+
+<label>Deposit (Incl. VAT)</label>
+<input id="deposit" type="number" oninput="calculate()">
+
+<label>Balloon (Incl. VAT)</label>
+<input id="balloon" type="number" oninput="calculate()">
+
+<label>Term (Months)</label>
+<input id="term" type="number" value="60" oninput="calculate()">
+
+<label>Interest Rate (% per year)</label>
+<input id="rate" type="number" value="5" oninput="calculate()">
+</div>
+
+<div class="summary-panel">
+  <div class="summary-card">
+    <div>Monthly Payment</div>
+    <div class="summary-value" id="monthly">0</div>
+    <div>Baht</div>
+  </div>
+  <div class="card" style="margin-top:20px">
+    <div>IRR: <span id="irr"></span></div>
+    <div>Finance: <span id="finance"></span></div>
+  </div>
+</div>
+
+</div>
+
+<div class="quote-preview print-area" id="quoteArea">
+  <h2 style="text-align:center">QUOTATION</h2>
+  <div id="quotationNo"></div>
+  <hr>
+  <b>Head Office:</b><br>
+  555 Rasa Tower2, Unit 1801 18th,19th Floor Paholyothin Rd. Chatuchak Bangkok 10900<br>
+  Tel. 02-792-4500<br><br>
+
+  <b>Eastern Branch:</b><br>
+  Amata Nakorn Industrial Estate 700/17 Moo 1, Tambol Klongtamru, Amphur Muang, Chonburi 20000<br>
+  Tel. 0-3845-7580<br><br>
+
+  <div id="quoteContent"></div>
+</div>
+
+<div class="footer-buttons">
+  <button onclick="window.print()">Print</button>
+  <button onclick="downloadPDF()">Download PDF</button>
+  <button onclick="exportExcel('th')">Excel TH</button>
+  <button onclick="exportExcel('en')">Excel EN</button>
+</div>
+
+<script>
+let lang="th";
+
+function generateQuotationNo(){
+  const today=new Date();
+  const y=today.getFullYear();
+  const m=String(today.getMonth()+1).padStart(2,'0');
+  const d=String(today.getDate()).padStart(2,'0');
+  const key="qt_"+y+m+d;
+  let count=localStorage.getItem(key)||0;
+  count++;
+  localStorage.setItem(key,count);
+  return `QT-${y}${m}${d}-${String(count).padStart(3,'0')}`;
+}
+document.getElementById("quotationNo").innerText="Quotation No: "+generateQuotationNo();
+
+function calculate(){
+  let price=+priceEl().value||0;
+  let deposit=+depositEl().value||0;
+  let balloon=+balloonEl().value||0;
+  let term=+termEl().value||1;
+  let rate=+rateEl().value/100/12;
+
+  let finance=price-deposit;
+  let pmt=(finance*rate)/(1-Math.pow(1+rate,-term));
+  if(balloon>0){
+    pmt=((finance-balloon/Math.pow(1+rate,term))*rate)/(1-Math.pow(1+rate,-term));
+  }
+
+  document.getElementById("monthly").innerText=pmt.toFixed(2);
+  document.getElementById("finance").innerText=finance.toFixed(2);
+  document.getElementById("irr").innerText=(rate*12*100).toFixed(2)+"%";
+
+  renderQuotation(price,deposit,balloon,pmt,term);
+}
+
+function renderQuotation(price,deposit,balloon,pmt,term){
+  let condition="";
+  if(balloon>0){
+    condition=`Lessee shall pay ${deposit.toFixed(2)} Baht as deposit. At end pay difference with balloon.`;
+  }else if(deposit>0){
+    condition=`Lessee shall pay deposit ${deposit.toFixed(2)} Baht applied to purchase price.`;
+  }else{
+    condition=`Lessee shall pay 1,070 Baht as purchase option.`;
+  }
+
+  document.getElementById("quoteContent").innerHTML=`
+  Customer: ${custName.value}<br>
+  Model: ${model.value}<br>
+  Car Price: ${price.toFixed(2)}<br>
+  Deposit: ${deposit.toFixed(2)}<br>
+  Monthly: ${pmt.toFixed(2)}<br>
+  Term: ${term} months<br><br>
+  <b>Condition:</b><br>${condition}
+  `;
+}
+
+function renderLanguage(){
+  lang=document.getElementById("language").value;
+}
+
+function downloadPDF(){
+  html2pdf().from(document.getElementById("quoteArea")).save("Lease-Quotation.pdf");
+}
+
+function exportExcel(language){
+  const wb=XLSX.utils.book_new();
+  const ws_data=[
+    ["Customer",custName.value],
+    ["Model",model.value],
+    ["Monthly",monthly.innerText]
+  ];
+  const ws=XLSX.utils.aoa_to_sheet(ws_data);
+  XLSX.utils.book_append_sheet(wb,ws,"Quotation");
+  XLSX.writeFile(wb,language==="th"?"ใบเสนอราคา.xlsx":"Quotation.xlsx");
+}
+
+function priceEl(){return document.getElementById("price")}
+function depositEl(){return document.getElementById("deposit")}
+function balloonEl(){return document.getElementById("balloon")}
+function termEl(){return document.getElementById("term")}
+function rateEl(){return document.getElementById("rate")}
+const custName=document.getElementById("custName");
+const model=document.getElementById("model");
+
+calculate();
+</script>
+
+</body>
+</html>
