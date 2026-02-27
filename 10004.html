@@ -1141,7 +1141,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   uiToggleMode();
   toggleBalloonUI();
   recalc();
-
+  setupNumericFormattingAndHighlight();
   // กันล้อเมาส์/trackpad เลื่อนแล้วค่า number เปลี่ยน
   document.addEventListener('wheel', preventWheelOnNumber, {passive:false});
 
@@ -1153,6 +1153,23 @@ window.addEventListener('DOMContentLoaded', ()=>{
     solveDownExactMonthly(v);
   });
   document.getElementById('btnSolve36000')?.addEventListener('click', ()=>solveDownExactMonthly(36000));
+});
+  window.addEventListener('DOMContentLoaded', ()=>{
+  if(!document.getElementById('issueDate').value){
+    document.getElementById('issueDate').value = todayIso();
+  }
+  applyQuoteLang('EN');
+  uiToggleMode();
+  toggleBalloonUI();
+  recalc();
+
+  // กันล้อเมาส์/trackpad เลื่อนแล้วค่า number เปลี่ยน
+  document.addEventListener('wheel', preventWheelOnNumber, {passive:false});
+
+  // ... (ปุ่มเดิมของคุณ) ...
+
+  // ★ ติดตั้งฟอร์แมตคอมมา + ไฮไลต์อินพุต
+  setupNumericFormattingAndHighlight();
 });
 </script>
 </body>
