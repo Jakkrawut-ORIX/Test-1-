@@ -189,7 +189,7 @@ button{font-family:var(--font);cursor:pointer;font-size:13px;font-weight:600;bor
 }
 .q-sign-space{
   flex:1;
-  min-height:22px; /* room to physically sign */
+  min-height:42px; /* room to physically sign */
 }
 .q-sign-line{
   border-top:1px solid #666;
@@ -345,27 +345,7 @@ button{font-family:var(--font);cursor:pointer;font-size:13px;font-weight:600;bor
           <div class="field mono"><label>% ค่าคอม</label><input id="commPct" type="number" min="0" step="0.01" inputmode="decimal" value="2.5"/></div>
           <div class="field mono"><label>Extra คอม <span class="hint">(บาท)</span></label><input id="commExtra" type="number" min="0" step="1" inputmode="numeric" value="0"/></div>
         </div>
-        <div class="divider"></div>
-        <!-- Guarantor + Payment Method -->
-        <div class="form-row last">
-          <div class="field">
-            <label>Guarantor</label>
-            <select id="guarantorType">
-              <option value="-" selected>-</option>
-              <option value="personal">Personal (Director)</option>
-              <option value="corporate">Corporate Guarantee</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Payment Method</label>
-            <select id="paymentMethod">
-              <option value="transfer" selected>Bank Transfer</option>
-              <option value="cheque_all">Post Date Cheque – All Contract</option>
-              <option value="cheque_12">Post Date Cheque – 12M Roll Over</option>
-            </select>
-          </div>
-        </div>
-        <div class="goal-seek-section" style="margin-top:14px">
+        <div class="goal-seek-section" style="margin-top:10px">
           <div class="gs-header">
             <div class="gs-icon">&#127919;</div>
             <div>
@@ -378,6 +358,32 @@ button{font-family:var(--font);cursor:pointer;font-size:13px;font-weight:600;bor
             <button class="btn-amber btn-sm" id="btnGoalSeek" type="button" style="padding:8px 16px;height:38px">คำนวณ</button>
           </div>
           <div class="kbd-hint"><kbd class="kbd">Ctrl</kbd><span>+</span><kbd class="kbd">Enter</kbd><span style="margin-left:4px">Goal Seek</span></div>
+        </div>
+        <div class="divider"></div>
+        <!-- Guarantor (multi-check) + Payment Method -->
+        <div class="form-row last">
+          <div class="field">
+            <label>Guarantor</label>
+            <div style="display:flex;flex-direction:column;gap:5px;margin-top:2px;">
+              <label style="font-size:12px;font-weight:400;color:var(--txt);display:flex;align-items:center;gap:7px;cursor:pointer;">
+                <input type="checkbox" id="guar_none" style="width:auto;" checked/> <span>-</span>
+              </label>
+              <label style="font-size:12px;font-weight:400;color:var(--txt);display:flex;align-items:center;gap:7px;cursor:pointer;">
+                <input type="checkbox" id="guar_personal" style="width:auto;"/> <span>Personal (Director)</span>
+              </label>
+              <label style="font-size:12px;font-weight:400;color:var(--txt);display:flex;align-items:center;gap:7px;cursor:pointer;">
+                <input type="checkbox" id="guar_corporate" style="width:auto;"/> <span>Corporate Guarantee</span>
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <label>Payment Method</label>
+            <select id="paymentMethod">
+              <option value="transfer" selected>Bank Transfer</option>
+              <option value="cheque_all">Post Date Cheque – All Contract</option>
+              <option value="cheque_12">Post Date Cheque – 12M Roll Over</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="btn-row">
@@ -392,7 +398,7 @@ button{font-family:var(--font);cursor:pointer;font-size:13px;font-weight:600;bor
 
     <div class="right-col">
       <div class="pmt-hero">
-        <div class="label">ค่างวด / เดือน (ปัดเศษ)</div>
+        <div class="label">ค่างวด / เดือน (ปัดขึ้น)</div>
         <div class="value" id="pmtRounded">—</div>
         <div class="sub">รวม VAT &nbsp;·&nbsp; <span id="months_hero">— งวด</span></div>
       </div>
@@ -573,20 +579,20 @@ button{font-family:var(--font);cursor:pointer;font-size:13px;font-weight:600;bor
       <div class="q-sign">
         <!-- Left: Sincerely -->
         <div class="q-sign-col">
-          <div class="q-sign-intro-txt" id="lbl_authsig">Your Sincerely,</div>
+          <div class="q-sign-intro-txt" id="lbl_authsig">ขอแสดงความนับถืออย่างสูง</div>
           <div class="q-sign-space"></div>
           <div class="q-sign-line"></div>
           <div class="q-sign-name">PANUTDA KENGKRIENGKRAI</div>
-          <div class="q-sign-role" id="lbl_role">Senior Manager</div>
+          <div class="q-sign-role" id="lbl_role">ผู้จัดการ</div>
         </div>
         <!-- Right: Customer confirmation -->
         <div class="q-sign-col">
-          <div class="q-sign-intro-txt" id="q_sign_confirm">By signing this document, you have confirmed your order,
-and have read and accepted all terms and conditions in this document.</div>
+          <div class="q-sign-intro-txt" id="q_sign_confirm" style="font-style:italic;">"การลงนามในเอกสารฉบับนี้ถือว่าผู้เช่าได้ยืนยันการสั่งซื้อ
+และยอมรับเงื่อนไขทั้งหมดที่ระบุไว้แล้ว"</div>
           <div class="q-sign-space"></div>
           <div class="q-sign-line"></div>
-          <div class="q-sign-cust"><span id="lbl_customer">Customer</span><span id="q_cust_sign" style="font-weight:700;margin-left:8px"></span></div>
-          <div class="q-sign-cust"><span id="lbl_date">Date</span></div>
+          <div class="q-sign-cust"><span id="lbl_customer" style="min-width:48px;">ลูกค้า</span><span style="margin-left:4px;">:</span><span id="q_cust_sign" style="font-weight:700;margin-left:6px;"></span></div>
+          <div class="q-sign-cust"><span id="lbl_date" style="min-width:48px;">วันที่</span><span style="margin-left:4px;">:</span></div>
         </div>
       </div>
 
@@ -748,19 +754,24 @@ function applyQuoteLang(lang) {
     ? 'ข้อเสนอนี้มีอายุ 30 วัน นับจากวันที่ใบเสนอราคา หากไม่ได้รับเอกสารที่ลงนามภายใน 30 วัน บริษัทฯ ขอสงวนสิทธิ์เปลี่ยนแปลงข้อเสนอในใบเสนอราคานี้'
     : 'This offer is valid for 30 days from the quotation date. If this document is not signed and returned to us within the 30 days, we reserve the right to change the offer in this quotation.');
   setText('q_sign_confirm', TH
-    ? 'การลงนามในเอกสารนี้ถือว่าท่านได้ยืนยันการสั่งซื้อ\nและได้อ่านและยอมรับข้อกำหนดและเงื่อนไขทั้งหมดในเอกสารนี้แล้ว'
-    : 'By signing this document, you have confirmed your order,\nand have read and accepted all terms and conditions in this document.');
-  setText('lbl_authsig',  TH ? 'ขอแสดงความนับถือ' : 'Your Sincerely,');
-  setText('lbl_role',     TH ? 'ผู้จัดการอาวุโส' : 'Senior Manager');
+    ? '"การลงนามในเอกสารฉบับนี้ถือว่าผู้เช่าได้ยืนยันการสั่งซื้อ\nและยอมรับเงื่อนไขทั้งหมดที่ระบุไว้แล้ว"'
+    : '"By signing this document, the lessee confirms the order\nand accepts all terms and conditions stated herein."');
+  setText('lbl_authsig',  TH ? 'ขอแสดงความนับถืออย่างสูง' : 'Yours Sincerely,');
+  setText('lbl_role',     TH ? 'ผู้จัดการ' : 'Manager');
   setText('lbl_customer', TH ? 'ลูกค้า' : 'Customer');
   setText('lbl_date',     TH ? 'วันที่' : 'Date');
 }
 
-/* Guarantor label helper */
-function getGuarantorLabel(val, TH) {
-  if (val === 'personal')  return TH ? 'บุคคลธรรมดา (กรรมการบริษัท)' : 'Personal (Director)';
-  if (val === 'corporate') return TH ? 'ค้ำประกันโดยนิติบุคคล' : 'Corporate Guarantee';
-  return '-';
+/* Guarantor multi-checkbox label helper */
+function getGuarantorLabel(TH) {
+  var none     = document.getElementById('guar_none')     ? document.getElementById('guar_none').checked     : true;
+  var personal = document.getElementById('guar_personal') ? document.getElementById('guar_personal').checked : false;
+  var corp     = document.getElementById('guar_corporate')? document.getElementById('guar_corporate').checked: false;
+  if (!personal && !corp) return '-';
+  var parts = [];
+  if (personal) parts.push(TH ? 'บุคคลธรรมดา (กรรมการบริษัท)' : 'Personal (Director)');
+  if (corp)     parts.push(TH ? 'ค้ำประกันโดยนิติบุคคล'        : 'Corporate Guarantee');
+  return parts.join('\n');
 }
 /* Payment method label helper */
 function getPaymentLabel(val, TH) {
@@ -785,7 +796,7 @@ function recalc() {
 
   var totalInterest = finMinusBalloon * flatRate * years;
   var pmtInc        = months > 0 ? (finMinusBalloon + totalInterest) / months : 0;
-  var pmtRounded    = Math.round(pmtInc);
+  var pmtRounded    = Math.ceil(pmtInc);
   var commBaseNum   = commBaseChoice === 'interest' ? totalInterest : finance;
   var commission    = Math.round(commBaseNum * commPct + Number(commExtra||0));
   var pmtEx         = pmtInc / (1 + vatPct);
@@ -858,9 +869,17 @@ function recalc() {
   setText('q_cust_sign', custName);
 
   /* Guarantor & Payment Method dynamic labels */
-  var guarantorVal = ($('guarantorType') ? $('guarantorType').value : '-');
   var paymentVal   = ($('paymentMethod')  ? $('paymentMethod').value  : 'transfer');
-  setText('rb_v5', getGuarantorLabel(guarantorVal, TH));
+  var guarLabel = getGuarantorLabel(TH);
+  // support multi-line guarantor in rate box
+  var rb5 = $('rb_v5');
+  if (rb5) {
+    if (guarLabel.indexOf('\n') >= 0) {
+      rb5.innerHTML = guarLabel.split('\n').map(function(l){return l;}).join('<br/>');
+    } else {
+      rb5.textContent = guarLabel;
+    }
+  }
   setText('rb_v3', getPaymentLabel(paymentVal, TH));
   setText('rb_v1', 'Flat Rate');
 
@@ -956,6 +975,10 @@ function goalSeekDown() {
 
 function resetAll() {
   Object.entries(DEFAULT_VALUES).forEach(function(kv){setVal(kv[0],kv[1]);});
+  // reset guarantor checkboxes
+  if($('guar_none'))     $('guar_none').checked = true;
+  if($('guar_personal')) $('guar_personal').checked = false;
+  if($('guar_corporate'))$('guar_corporate').checked = false;
   applyQuoteLang('EN');
   uiToggleMode();
   toggleBalloonUI();
@@ -1048,6 +1071,25 @@ window.addEventListener('DOMContentLoaded', function(){
   document.addEventListener('wheel', preventWheelOnNumber, {passive:false});
   if($('btnSolveIRR')) $('btnSolveIRR').addEventListener('click', solveFlatFromIRR);
   if($('btnGoalSeek'))  $('btnGoalSeek').addEventListener('click', goalSeekDown);
+  ['guar_personal','guar_corporate'].forEach(function(id){
+    var el = $(id);
+    if(el) el.addEventListener('change', function(){
+      if(el.checked) { if($('guar_none')) $('guar_none').checked = false; }
+      // if neither personal nor corporate → re-check none
+      if(!$('guar_personal').checked && !$('guar_corporate').checked) $('guar_none').checked = true;
+      recalc();
+    });
+  });
+  if($('guar_none')) $('guar_none').addEventListener('change', function(){
+    if($('guar_none').checked){
+      if($('guar_personal'))  $('guar_personal').checked  = false;
+      if($('guar_corporate')) $('guar_corporate').checked = false;
+    } else {
+      // can't uncheck none without choosing something — re-check if nothing else
+      if(!$('guar_personal').checked && !$('guar_corporate').checked) $('guar_none').checked = true;
+    }
+    recalc();
+  });
 });
 </script>
 </body>
